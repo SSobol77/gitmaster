@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial Git - Interaktywny Poradnik</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-dark': '#0a0e1a',
+                        'bg-light': '#1a1f2e',
+                        'surface': '#252a3a',
+                        'border': '#3a3f4f',
+                        'neon-primary': '#00ff88',
+                        'neon-secondary': '#ff6b6b',
+                        'neon-warning': '#ffd93d',
+                        'neon-info': '#4ecdc4',
+                        'neon-purple': '#a78bfa',
+                        'text-primary': '#ffffff',
+                        'text-secondary': '#b8c5d1',
+                        'text-muted': '#6b7280'
+                    },
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                        'sans': ['Inter', 'sans-serif'],
+                        'display': ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(37, 42, 58, 0.8);
+        }
+        
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        .step-active {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .step-completed {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.1);
+        }
+        
+        .tutorial-content {
+            display: none;
+        }
+        
+        .tutorial-content.active {
+            display: block;
+        }
+        
+        .code-block {
+            background: #1a1f2e;
+            border: 1px solid #3a3f4f;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: auto;
+        }
+        
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-bg-dark text-text-primary font-sans">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl font-display font-bold neon-text">
+                        GitMaster
+                    </a>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="index.html" class="text-text-secondary hover:text-neon-primary transition-colors">Strona Główna</a>
+                        <a href="tutorial.html" class="text-neon-primary">Tutorial</a>
+                        <a href="generator.html" class="text-text-secondary hover:text-neon-primary transition-colors">Generator</a>
+                        <a href="quiz.html" class="text-text-secondary hover:text-neon-primary transition-colors">Quiz</a>
+                        <a href="errors.html" class="text-text-secondary hover:text-neon-primary transition-colors">Błędy</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2 text-sm text-text-muted">
+                        <span>Postęp tutoriala:</span>
+                        <div class="w-24 h-2 bg-surface rounded-full">
+                            <div class="h-full bg-neon-primary rounded-full transition-all duration-500" style="width: 0%" id="tutorialProgress"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-5xl md:text-6xl font-display font-bold mb-6">
+                Kompletny <span class="neon-text">Tutorial Git</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-text-secondary mb-8 max-w-3xl mx-auto">
+                Naucz się Git krok po kroku - od podstawowej konfiguracji po zaawansowane techniki pracy zespołowej
+            </p>
+        </div>
+    </section>
+    
+    <!-- Tutorial Navigation -->
+    <section class="py-8 px-4 border-b border-border">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button onclick="showTutorial(0)" class="tutorial-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-tutorial="0">
+                    1. Wprowadzenie
+                </button>
+                <button onclick="showTutorial(1)" class="tutorial-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-tutorial="1">
+                    2. Instalacja
+                </button>
+                <button onclick="showTutorial(2)" class="tutorial-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-tutorial="2">
+                    3. Podstawy
+                </button>
+                <button onclick="showTutorial(3)" class="tutorial-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-tutorial="3">
+                    4. Praca zdalna
+                </button>
+                <button onclick="showTutorial(4)" class="tutorial-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-tutorial="4">
+                    5. Gałęzie
+                </button>
+                <button onclick="showTutorial(5)" class="tutorial-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-tutorial="5">
+                    6. Zaawansowane
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Tutorial Content -->
+    <section class="py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Tutorial 1: Introduction -->
+            <div class="tutorial-content active" id="tutorial-0">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-3xl font-display font-bold mb-6 text-neon-primary">Czym jest Git?</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">System Kontroli Wersji</h3>
+                                <p class="text-text-secondary mb-4">
+                                    Git to rozproszony system kontroli wersji stworzony przez Linusa Torvaldsa (twórcę Linuxa). 
+                                    Pozwala śledzić zmiany w plikach i współpracować z zespołem nad jednym projektem.
+                                </p>
+                                
+                                <div class="bg-surface rounded-lg p-4 mb-4">
+                                    <h4 class="font-semibold mb-2 text-neon-info">Kluczowe cechy Git:</h4>
+                                    <ul class="space-y-2 text-text-secondary">
+                                        <li class="flex items-center"><span class="text-neon-primary mr-2">•</span> Rozproszona architektura - każdy ma pełną kopię</li>
+                                        <li class="flex items-center"><span class="text-neon-primary mr-2">•</span> Szybkość i wydajność</li>
+                                        <li class="flex items-center"><span class="text-neon-primary mr-2">•</span> Możliwość pracy offline</li>
+                                        <li class="flex items-center"><span class="text-neon-primary mr-2">•</span> Elastyczne modele rozgałęziania</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Jak działa Git?</h3>
+                                <p class="text-text-secondary mb-4">
+                                    Git przechowuje zdjęcia (snapshots) Twojego projektu w czasie. Za każdym razem, gdy zatwierdzasz zmiany, 
+                                    Git zapisuje migawkę tego, jak wyglądają Twoje pliki w tym momencie.
+                                </p>
+                                
+                                <div class="code-block">
+                                    <div class="text-neon-primary mb-2"># Git przechowuje historię zmian</div>
+                                    <div class="text-text-primary">commit 1: Initial project setup</div>
+                                    <div class="text-text-primary">commit 2: Added login functionality</div>
+                                    <div class="text-text-primary">commit 3: Fixed navigation bug</div>
+                                    <div class="text-text-primary">commit 4: Updated styling</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Dlaczego warto używać Git?</h3>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-surface rounded">
+                                    <div class="font-semibold text-neon-primary">Kontrola wersji</div>
+                                    <div class="text-sm text-text-muted">Śledź każdą zmianę w projekcie</div>
+                                </div>
+                                <div class="p-3 bg-surface rounded">
+                                    <div class="font-semibold text-neon-info">Współpraca zespołowa</div>
+                                    <div class="text-sm text-text-muted">Pracuj jednocześnie nad jednym projektem</div>
+                                </div>
+                                <div class="p-3 bg-surface rounded">
+                                    <div class="font-semibold text-neon-purple">Bezpieczeństwo</div>
+                                    <div class="text-sm text-text-muted">Nigdy nie stracisz swojej pracy</div>
+                                </div>
+                                <div class="p-3 bg-surface rounded">
+                                    <div class="font-semibold text-neon-warning">Eksperymentowanie</div>
+                                    <div class="text-sm text-text-muted">Twórz nowe funkcje bez obaw</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Gdzie używa się Git?</h3>
+                            <div class="space-y-2 text-text-secondary">
+                                <div>• Oprogramowanie i aplikacje</div>
+                                <div>• Strony internetowe</div>
+                                <div>• Dokumentacja techniczna</div>
+                                <div>• Książki i artykuły</div>
+                                <div>• Projektowanie UI/UX</div>
+                                <div>• Konfiguracje systemów</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <button onclick="completeStep(0)" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">
+                        Zrozumiałem - przejdź dalej
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tutorial 2: Installation -->
+            <div class="tutorial-content" id="tutorial-1">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-3xl font-display font-bold mb-6 text-neon-primary">Instalacja i konfiguracja</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Instalacja Git</h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">Windows:</h4>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">1. Pobierz z: https://git-scm.com/download/win</div>
+                                            <div class="text-text-primary">2. Uruchom instalator i wybierz domyślne opcje</div>
+                                            <div class="text-text-primary">3. Sprawdź wiersz poleceń: git --version</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">macOS:</h4>
+                                        <div class="code-block">
+                                            <div class="text-neon-primary"># Używając Homebrew</div>
+                                            <div class="text-text-primary">$ brew install git</div>
+                                            <div class="text-text-primary"></div>
+                                            <div class="text-neon-primary"># Lub pobierz z git-scm.com</div>
+                                            <div class="text-text-primary">$ git --version</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">Linux (Ubuntu/Debian):</h4>
+                                        <div class="code-block">
+                                            <div class="text-neon-primary"># Aktualizuj repozytoria</div>
+                                            <div class="text-text-primary">$ sudo apt update</div>
+                                            <div class="text-text-primary"></div>
+                                            <div class="text-neon-primary"># Instaluj Git</div>
+                                            <div class="text-text-primary">$ sudo apt install git</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Podstawowa konfiguracja</h3>
+                                <p class="text-text-secondary mb-4">
+                                    Po instalacji Git wymaga podstawowej konfiguracji - Twojego imienia i emaila. 
+                                    Te informacje będą przypisywane do Twoich commitów.
+                                </p>
+                                
+                                <div class="code-block">
+                                    <div class="text-neon-primary"># Konfiguracja globalna (dla wszystkich projektów)</div>
+                                    <div class="text-text-primary">$ git config --global user.name "Twoje Imię i Nazwisko"</div>
+                                    <div class="text-text-primary">$ git config --global user.email "twoj.email@example.com"</div>
+                                    <div class="text-text-primary"></div>
+                                    <div class="text-neon-primary"># Sprawdź konfigurację</div>
+                                    <div class="text-text-primary">$ git config --list</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Przydatne aliasy</h3>
+                            <p class="text-text-secondary mb-4">
+                                Utwórz skróty do często używanych komend:
+                            </p>
+                            
+                            <div class="code-block text-sm">
+                                <div class="text-neon-primary"># Skrócone komendy</div>
+                                <div class="text-text-primary">git config --global alias.co checkout</div>
+                                <div class="text-text-primary">git config --global alias.br branch</div>
+                                <div class="text-text-primary">git config --global alias.ci commit</div>
+                                <div class="text-text-primary">git config --global alias.st status</div>
+                                <div class="text-text-primary"></div>
+                                <div class="text-neon-primary"># Przydatne aliasy</div>
+                                <div class="text-text-primary">git config --global alias.unstage 'reset HEAD --'</div>
+                                <div class="text-text-primary">git config --global alias.last 'log -1 HEAD'</div>
+                                <div class="text-text-primary">git config --global alias.visual '!gitk'</div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Weryfikacja instalacji</h3>
+                            <p class="text-text-secondary mb-4">
+                                Sprawdź czy Git jest poprawnie zainstalowany:
+                            </p>
+                            
+                            <div class="code-block">
+                                <div class="text-neon-primary"># Sprawdź wersję</div>
+                                <div class="text-text-primary">$ git --version</div>
+                                <div class="text-text-primary">git version 2.34.1</div>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-neon-primary/10 rounded">
+                                <div class="text-neon-primary text-sm">
+                                    ✓ Git jest gotowy do użycia!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <button onclick="completeStep(1)" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">
+                        Skonfigurowane - przejdź dalej
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tutorial 3: Basics -->
+            <div class="tutorial-content" id="tutorial-2">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-3xl font-display font-bold mb-6 text-neon-primary">Podstawy Git</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Inicjalizacja repozytorium</h3>
+                                <p class="text-text-secondary mb-4">
+                                    Rozpocznij śledzenie zmian w swoim projekcie:
+                                </p>
+                                
+                                <div class="code-block">
+                                    <div class="text-neon-primary"># Utwórz nowy folder projektu</div>
+                                    <div class="text-text-primary">$ mkdir moj-projekt</div>
+                                    <div class="text-text-primary">$ cd moj-projekt</div>
+                                    <div class="text-text-primary"></div>
+                                    <div class="text-neon-primary"># Zainicjalizuj repozytorium Git</div>
+                                    <div class="text-text-primary">$ git init</div>
+                                    <div class="text-green-400">Initialized empty Git repository in /path/to/moj-projekt/.git/</div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Cykl życia plików w Git</h3>
+                                <p class="text-text-secondary mb-4">
+                                    Git ma trzy główne stany plików: Working Directory, Staging Area i Repository.
+                                </p>
+                                
+                                <div class="bg-surface rounded-lg p-4 mb-4">
+                                    <img src="git-repository-structure.png" alt="Git Repository Structure" class="w-full rounded">
+                                </div>
+                                
+                                <div class="grid md:grid-cols-3 gap-4">
+                                    <div class="p-4 bg-blue-500/10 border border-blue-500/30 rounded">
+                                        <h4 class="font-semibold text-blue-400 mb-2">Working Directory</h4>
+                                        <p class="text-sm text-text-secondary">Pliki, nad którymi aktualnie pracujesz</p>
+                                    </div>
+                                    <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded">
+                                        <h4 class="font-semibold text-yellow-400 mb-2">Staging Area</h4>
+                                        <p class="text-sm text-text-secondary">Przygotowane zmiany do zatwierdzenia</p>
+                                    </div>
+                                    <div class="p-4 bg-green-500/10 border border-green-500/30 rounded">
+                                        <h4 class="font-semibold text-green-400 mb-2">Repository</h4>
+                                        <p class="text-sm text-text-secondary">Zatwierdzone zmiany w historii</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Podstawowe komendy</h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">git status - sprawdź status</h4>
+                                        <div class="code-block text-sm">
+                                            <div class="text-text-primary">$ git status</div>
+                                            <div class="text-text-primary">On branch main</div>
+                                            <div class="text-text-primary">No commits yet</div>
+                                            <div class="text-text-primary">nothing to commit</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">git add - dodaj pliki</h4>
+                                        <div class="code-block text-sm">
+                                            <div class="text-neon-primary"># Dodaj pojedynczy plik</div>
+                                            <div class="text-text-primary">$ git add index.html</div>
+                                            <div class="text-neon-primary"># Dodaj wszystkie pliki</div>
+                                            <div class="text-text-primary">$ git add .</div>
+                                            <div class="text-neon-primary"># Dodaj wszystkie pliki HTML</div>
+                                            <div class="text-text-primary">$ git add *.html</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">git commit - zatwierdź zmiany</h4>
+                                        <div class="code-block text-sm">
+                                            <div class="text-neon-primary"># Zatwierdź ze skróconym komunikatem</div>
+                                            <div class="text-text-primary">$ git commit -m "Initial commit"</div>
+                                            <div class="text-neon-primary"># Zatwierdź z szczegółowym opisem</div>
+                                            <div class="text-text-primary">$ git commit -m "Add homepage" -m "Created basic HTML structure"</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Praktyczne ćwiczenie</h3>
+                            <p class="text-text-secondary mb-4">
+                                Wypróbuj podstawowe komendy w praktyce:
+                            </p>
+                            
+                            <div class="code-block text-sm">
+                                <div class="text-neon-primary"># 1. Utwórz plik</div>
+                                <div class="text-text-primary">$ echo "# Mój Projekt" > README.md</div>
+                                <div class="text-text-primary"></div>
+                                <div class="text-neon-primary"># 2. Sprawdź status</div>
+                                <div class="text-text-primary">$ git status</div>
+                                <div class="text-text-primary"></div>
+                                <div class="text-neon-primary"># 3. Dodaj plik</div>
+                                <div class="text-text-primary">$ git add README.md</div>
+                                <div class="text-text-primary"></div>
+                                <div class="text-neon-primary"># 4. Zatwierdź zmiany</div>
+                                <div class="text-text-primary">$ git commit -m "Add README file"</div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Przydatne skróty</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="font-mono text-neon-primary">git add -A</span>
+                                    <span class="text-text-muted">Dodaj wszystko</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-mono text-neon-primary">git add -u</span>
+                                    <span class="text-text-muted">Dodaj zmodyfikowane</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-mono text-neon-primary">git commit -am</span>
+                                    <span class="text-text-muted">Add + commit</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-mono text-neon-primary">git log --oneline</span>
+                                    <span class="text-text-muted">Skrócony log</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <button onclick="completeStep(2)" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">
+                        Opanowałem podstawy - dalej!
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Continue with other tutorials... -->
+            <div class="tutorial-content" id="tutorial-3">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-3xl font-display font-bold mb-6 text-neon-primary">Praca z repozytoriami zdalnymi</h2>
+
+                        <div class="space-y-6">
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Dodawanie i zarządzanie remote</h3>
+                                <p class="text-text-secondary mb-4">Remote to zdalne repozytorium (np. GitHub). Najczęściej używanym remote jest <span class="font-mono text-neon-info">origin</span>.</p>
+                                <div class="code-block text-sm">
+                                    <div class="text-neon-primary"># Dodaj remote origin</div>
+                                    <div class="text-text-primary">$ git remote add origin https://github.com/user/repo.git</div>
+                                    <div class="text-neon-primary mt-3"># Pokaż skonfigurowane remote</div>
+                                    <div class="text-text-primary">$ git remote -v</div>
+                                    <div class="text-neon-primary mt-3"># Zmień URL</div>
+                                    <div class="text-text-primary">$ git remote set-url origin git@github.com:user/repo.git</div>
+                                    <div class="text-neon-primary mt-3"># Usuń remote</div>
+                                    <div class="text-text-primary">$ git remote remove origin</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Clone, Fetch, Pull, Push</h3>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">Klonowanie</h4>
+                                        <div class="code-block text-sm">
+                                            <div class="text-text-primary">$ git clone https://github.com/user/repo.git</div>
+                                            <div class="text-text-primary">$ git clone git@github.com:user/repo.git</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-neon-info mb-2">Pobieranie zmian</h4>
+                                        <div class="code-block text-sm">
+                                            <div class="text-text-primary">$ git fetch origin</div>
+                                            <div class="text-text-primary">$ git pull origin main</div>
+                                            <div class="text-text-primary">$ git pull --rebase origin main</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <h4 class="font-semibold text-neon-info mb-2">Wysyłanie zmian</h4>
+                                    <div class="code-block text-sm">
+                                        <div class="text-neon-primary"># Pierwszy push i ustawienie upstream</div>
+                                        <div class="text-text-primary">$ git push -u origin main</div>
+                                        <div class="text-neon-primary mt-3"># Kolejne push-e</div>
+                                        <div class="text-text-primary">$ git push</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Śledzenie branchy i upstream</h3>
+                                <p class="text-text-secondary mb-4">Branch śledzący ma połączenie z gałęzią na zdalnym repozytorium.</p>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">$ git branch -vv</div>
+                                    <div class="text-text-primary">$ git branch --set-upstream-to=origin/main main</div>
+                                    <div class="text-text-primary">$ git push --set-upstream origin feature/login</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Tagi i wydania</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-neon-primary"># Lekki tag</div>
+                                    <div class="text-text-primary">$ git tag v1.0.0</div>
+                                    <div class="text-neon-primary mt-3"># Adnotowany tag (zalecany)</div>
+                                    <div class="text-text-primary">$ git tag -a v1.0.0 -m "Pierwsze wydanie"</div>
+                                    <div class="text-neon-primary mt-3"># Wypchnij tagi</div>
+                                    <div class="text-text-primary">$ git push origin --tags</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Ćwiczenie: pierwsze połączenie</h3>
+                            <div class="code-block text-sm">
+                                <div class="text-text-primary">$ echo "# Projekt" > README.md</div>
+                                <div class="text-text-primary">$ git init && git add . && git commit -m "Init"</div>
+                                <div class="text-text-primary">$ git remote add origin https://github.com/user/repo.git</div>
+                                <div class="text-text-primary">$ git push -u origin main</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Najczęstsze problemy</h3>
+                            <ul class="space-y-2 text-sm text-text-secondary">
+                                <li>• <span class="font-mono text-neon-secondary">src refspec main does not match any</span> — brak commitów lub zła gałąź</li>
+                                <li>• Konflikty po <span class="font-mono text-neon-info">git pull</span> — rozwiąż konflikty i zatwierdź</li>
+                                <li>• SSH <span class="font-mono">Permission denied (publickey)</span> — skonfiguruj klucze SSH</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center">
+                            <button onclick="completeStep(3)" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">Zrobione - następny dział</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tutorial-content" id="tutorial-4">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-3xl font-display font-bold mb-6 text-neon-primary">Gałęzie i merge</h2>
+
+                        <div class="space-y-6">
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Tworzenie i przełączanie gałęzi</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-neon-primary"># Utwórz nową gałąź</div>
+                                    <div class="text-text-primary">$ git branch feature/login</div>
+                                    <div class="text-neon-primary mt-3"># Przełącz się</div>
+                                    <div class="text-text-primary">$ git checkout feature/login</div>
+                                    <div class="text-text-primary">$ git switch feature/login</div>
+                                    <div class="text-neon-primary mt-3"># Utwórz i przełącz jednocześnie</div>
+                                    <div class="text-text-primary">$ git checkout -b feature/login</div>
+                                    <div class="text-text-primary">$ git switch -c feature/login</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Scalanie (merge) vs Przepisanie historii (rebase)</h3>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <h4 class="font-semibold text-green-400 mb-2">Merge</h4>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git checkout main</div>
+                                            <div class="text-text-primary">$ git merge feature/login</div>
+                                        </div>
+                                        <p class="text-text-secondary mt-2">Zachowuje historię rozgałęzień. Bezpieczny dla zespołów.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-yellow-400 mb-2">Rebase</h4>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git checkout feature/login</div>
+                                            <div class="text-text-primary">$ git rebase main</div>
+                                        </div>
+                                        <p class="text-text-secondary mt-2">Przepisuje historię, tworzy liniową oś czasu. Nie używaj na publicznych branchach.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Rozwiązywanie konfliktów</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">$ git merge feature/login</div>
+                                    <div class="text-text-primary"># CONFLICT (content): ...</div>
+                                    <div class="text-neon-primary mt-3"># 1. Sprawdź status</div>
+                                    <div class="text-text-primary">$ git status</div>
+                                    <div class="text-neon-primary mt-3"># 2. Otwórz plik i rozwiąż konflikty</div>
+                                    <div class="text-text-primary">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</div>
+                                    <div class="text-text-primary">Twoja wersja</div>
+                                    <div class="text-text-primary">=======</div>
+                                    <div class="text-text-primary">Wersja z feature/login</div>
+                                    <div class="text-text-primary">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login</div>
+                                    <div class="text-neon-primary mt-3"># 3. Oznacz jako rozwiązane i zatwierdź</div>
+                                    <div class="text-text-primary">$ git add .</div>
+                                    <div class="text-text-primary">$ git commit -m "Resolve merge conflicts"</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Strategie pracy z gałęziami</h3>
+                                <div class="bg-surface rounded-lg p-4 mb-4">
+                                    <img src="git-workflow-diagram.png" alt="Git Workflow" class="w-full rounded">
+                                </div>
+                                <ul class="space-y-2 text-text-secondary">
+                                    <li>• Git Flow: <span class="text-text-muted">main, develop, feature/*, release/*, hotfix/*</span></li>
+                                    <li>• Trunk-based development: krótkie gałęzie, szybkie merge/rebase</li>
+                                    <li>• Pull Requests: code review, testy CI przed scaleniem</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Ćwiczenie: feature → main</h3>
+                            <div class="code-block text-sm">
+                                <div class="text-text-primary">$ git switch -c feature/ui</div>
+                                <div class="text-text-primary">$ # zrób zmiany, commit</div>
+                                <div class="text-text-primary">$ git switch main && git pull</div>
+                                <div class="text-text-primary">$ git merge feature/ui</div>
+                                <div class="text-text-primary">$ git push</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button onclick="completeStep(4)" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">Gałęzie opanowane</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tutorial-content" id="tutorial-5">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-3xl font-display font-bold mb-6 text-neon-primary">Zaawansowane techniki</h2>
+
+                        <div class="space-y-6">
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Stash: tymczasowe odkładanie zmian</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">$ git stash</div>
+                                    <div class="text-text-primary">$ git stash list</div>
+                                    <div class="text-text-primary">$ git stash pop</div>
+                                    <div class="text-text-primary">$ git stash apply stash@{2}</div>
+                                    <div class="text-text-primary">$ git stash push -m "praca-w-toku" -- include-untracked</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Reflog i odzyskiwanie</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">$ git reflog</div>
+                                    <div class="text-text-primary">$ git checkout -b restore-branch <span class="text-text-muted">HASH</span></div>
+                                    <div class="text-text-primary">$ git fsck --lost-found</div>
+                                </div>
+                                <p class="text-text-secondary mt-2">Reflog śledzi lokalne ruchy HEAD. Użyj do odzyskiwania utraconych commitów.</p>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Reset vs Revert</h3>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <h4 class="font-semibold text-yellow-400 mb-2">git reset</h4>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git reset --soft HEAD~1</div>
+                                            <div class="text-text-primary">$ git reset --mixed HEAD~1</div>
+                                            <div class="text-text-primary">$ git reset --hard HEAD~1</div>
+                                        </div>
+                                        <p class="text-text-secondary mt-2">Zmienia wskaźniki i/lub pliki robocze. Nie używaj <span class="font-mono">--hard</span> bez świadomości konsekwencji.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-green-400 mb-2">git revert</h4>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git revert HEAD</div>
+                                            <div class="text-text-primary">$ git revert a1b2c3d</div>
+                                        </div>
+                                        <p class="text-text-secondary mt-2">Tworzy nowy commit odwracający zmiany. Bezpieczny na publicznych branchach.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Cherry-pick i interaktywny rebase</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">$ git cherry-pick a1b2c3d</div>
+                                    <div class="text-text-primary">$ git rebase -i HEAD~5</div>
+                                    <div class="text-text-primary"># pick | reword | squash | drop</div>
+                                </div>
+                            </div>
+
+                            <div class="glass-effect rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Podmoduły (submodules) — podstawy</h3>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">$ git submodule add https://github.com/user/lib.git libs/lib</div>
+                                    <div class="text-text-primary">$ git submodule update --init --recursive</div>
+                                    <div class="text-text-primary">$ git submodule foreach git pull</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Checklist bezpieczeństwa</h3>
+                            <ul class="space-y-2 text-sm text-text-secondary">
+                                <li>• Nigdy nie rebase’uj publicznych branchy</li>
+                                <li>• Używaj <span class="font-mono">--force-with-lease</span> zamiast <span class="font-mono">--force</span></li>
+                                <li>• Rób tagi dla wydań</li>
+                                <li>• Używaj PR + CI przed merge do <span class="font-mono">main</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center">
+                            <button onclick="completeStep(5)" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">Zakończ tutorial</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-border">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="text-2xl font-display font-bold neon-text mb-4">GitMaster</div>
+            <p class="text-text-secondary mb-6">
+                Interaktywny poradnik Git stworzony z myślą o developerach
+            </p>
+            <div class="text-sm text-text-muted">
+                © 2024 GitMaster. Wszystkie prawa zastrzeżone.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        let currentTutorial = 0;
+        const totalTutorials = 6;
+        
+        function showTutorial(index) {
+            // Hide all tutorials
+            document.querySelectorAll('.tutorial-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected tutorial
+            document.getElementById(`tutorial-${index}`).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.tutorial-nav-btn').forEach(btn => {
+                btn.classList.remove('step-active');
+            });
+            document.querySelector(`[data-tutorial="${index}"]`).classList.add('step-active');
+            
+            currentTutorial = index;
+            updateTutorialProgress();
+        }
+        
+        function completeStep(stepIndex) {
+            // Mark step as completed
+            const btn = document.querySelector(`[data-tutorial="${stepIndex}"]`);
+            if (btn) {
+                btn.classList.remove('step-active');
+                btn.classList.add('step-completed');
+            }
+            
+            // Move to next tutorial
+            if (stepIndex < totalTutorials - 1) {
+                showTutorial(stepIndex + 1);
+            }
+            
+            // Save progress
+            const progress = {
+                completedSteps: Array.from({length: stepIndex + 1}, (_, i) => i),
+                lastStep: stepIndex,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('gitmaster-tutorial-progress', JSON.stringify(progress));
+        }
+        
+        function updateTutorialProgress() {
+            const progress = (currentTutorial / (totalTutorials - 1)) * 100;
+            const progressBar = document.getElementById('tutorialProgress');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+        }
+        
+        function loadTutorialProgress() {
+            const saved = localStorage.getItem('gitmaster-tutorial-progress');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (data.completedSteps) {
+                    data.completedSteps.forEach(step => {
+                        const btn = document.querySelector(`[data-tutorial="${step}"]`);
+                        if (btn) {
+                            btn.classList.add('step-completed');
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTutorialProgress();
+            showTutorial(0);
+        });
+        
+        // Make functions global
+        window.showTutorial = showTutorial;
+        window.completeStep = completeStep;
+    </script>
+</body>
+</html>

@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Git - Przetestuj swoją wiedzę</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-dark': '#0a0e1a',
+                        'bg-light': '#1a1f2e',
+                        'surface': '#252a3a',
+                        'border': '#3a3f4f',
+                        'neon-primary': '#00ff88',
+                        'neon-secondary': '#ff6b6b',
+                        'neon-warning': '#ffd93d',
+                        'neon-info': '#4ecdc4',
+                        'neon-purple': '#a78bfa',
+                        'text-primary': '#ffffff',
+                        'text-secondary': '#b8c5d1',
+                        'text-muted': '#6b7280'
+                    },
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                        'sans': ['Inter', 'sans-serif'],
+                        'display': ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(37, 42, 58, 0.8);
+        }
+        
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .quiz-option.correct {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+        }
+        
+        .quiz-option.incorrect {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+        }
+        
+        .quiz-option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .quiz-section {
+            display: none;
+        }
+        
+        .quiz-section.active {
+            display: block;
+        }
+        
+        .achievement-badge {
+            animation: bounce 0.6s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+            40%, 43% { transform: translate3d(0,-15px,0); }
+            70% { transform: translate3d(0,-7px,0); }
+            90% { transform: translate3d(0,-2px,0); }
+        }
+        
+        .level-badge {
+            background: linear-gradient(135deg, #00ff88, #4ecdc4);
+            color: #0a0e1a;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-bg-dark text-text-primary font-sans">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl font-display font-bold neon-text">
+                        GitMaster
+                    </a>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="index.html" class="text-text-secondary hover:text-neon-primary transition-colors">Strona Główna</a>
+                        <a href="tutorial.html" class="text-text-secondary hover:text-neon-primary transition-colors">Tutorial</a>
+                        <a href="generator.html" class="text-text-secondary hover:text-neon-primary transition-colors">Generator</a>
+                        <a href="quiz.html" class="text-neon-primary">Quiz</a>
+                        <a href="errors.html" class="text-text-secondary hover:text-neon-primary transition-colors">Błędy</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2 text-sm text-text-muted">
+                        <span>Poziom:</span>
+                        <div class="level-badge px-3 py-1 rounded-full text-sm" id="userLevel">Początkujący</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-5xl md:text-6xl font-display font-bold mb-6">
+                Quiz <span class="neon-text">Git</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-text-secondary mb-8 max-w-3xl mx-auto">
+                Przetestuj swoją wiedzę o Git przez interaktywne quizy i zdobywaj odznaki. 
+                Od podstaw po eksperckie wyzwania.
+            </p>
+        </div>
+    </section>
+    
+    <!-- Quiz Navigation -->
+    <section class="py-8 px-4 border-b border-border">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button onclick="showQuiz('basics')" class="quiz-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors active" data-quiz="basics">
+                    Podstawy (15 pytań)
+                </button>
+                <button onclick="showQuiz('advanced')" class="quiz-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-quiz="advanced">
+                    Zaawansowane (20 pytań)
+                </button>
+                <button onclick="showQuiz('challenges')" class="quiz-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-quiz="challenges">
+                    Wyzwania
+                </button>
+                <button onclick="showQuiz('leaderboard')" class="quiz-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-quiz="leaderboard">
+                    Ranking
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Quiz Content -->
+    <section class="py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Basics Quiz -->
+            <div class="quiz-section active" id="quiz-basics">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="glass-effect rounded-lg p-8">
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-text-secondary">Pytanie <span id="basicsCurrentQuestion">1</span> z <span id="basicsTotalQuestions">15</span></span>
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-sm text-neon-primary">Punkty: <span id="basicsScore">0</span></span>
+                                        <span class="text-sm text-neon-info">Czas: <span id="basicsTime">05:00</span></span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-surface rounded-full h-3 mb-4">
+                                    <div class="bg-neon-primary h-3 rounded-full progress-bar" style="width: 6.67%" id="basicsProgress"></div>
+                                </div>
+                            </div>
+                            
+                            <div id="basicsQuizContent">
+                                <h3 class="text-2xl font-semibold mb-6" id="basicsQuestionText">
+                                    Jaką komendę używasz do inicjalizacji nowego repozytorium Git?
+                                </h3>
+                                
+                                <div class="space-y-4" id="basicsQuizOptions">
+                                    <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectBasicAnswer(0)">
+                                        <span class="font-mono">git init</span>
+                                        <div class="text-sm text-text-muted mt-1">Inicjalizuje nowe repozytorium Git</div>
+                                    </div>
+                                    <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectBasicAnswer(1)">
+                                        <span class="font-mono">git start</span>
+                                        <div class="text-sm text-text-muted mt-1">Rozpoczyna projekt Git</div>
+                                    </div>
+                                    <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectBasicAnswer(2)">
+                                        <span class="font-mono">git create</span>
+                                        <div class="text-sm text-text-muted mt-1">Tworzy nowe repozytorium</div>
+                                    </div>
+                                    <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectBasicAnswer(3)">
+                                        <span class="font-mono">git new</span>
+                                        <div class="text-sm text-text-muted mt-1">Nowy projekt Git</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 text-center">
+                                    <button id="basicsNextBtn" onclick="nextBasicQuestion()" class="bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold opacity-50 cursor-not-allowed" disabled>
+                                        Następne pytanie
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="basicsQuizResults" class="hidden text-center">
+                                <h3 class="text-3xl font-bold mb-4 text-neon-primary">Quiz ukończony!</h3>
+                                <div class="mb-6">
+                                    <div class="text-6xl font-bold text-neon-primary mb-2" id="basicsFinalScore">0</div>
+                                    <div class="text-xl text-text-secondary mb-4">na 15 punktów</div>
+                                    <div class="text-lg mb-6" id="basicsPercentage">0%</div>
+                                </div>
+                                
+                                <div class="mb-6" id="basicsAchievements">
+                                    <!-- Achievements will be added here -->
+                                </div>
+                                
+                                <div class="flex justify-center gap-4">
+                                    <button onclick="restartBasicsQuiz()" class="bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold hover-lift">
+                                        Spróbuj ponownie
+                                    </button>
+                                    <button onclick="showQuiz('advanced')" class="border-2 border-neon-primary text-neon-primary px-6 py-3 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all">
+                                        Quiz zaawansowany
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Statystyki</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Poprawne:</span>
+                                    <span class="text-green-400" id="basicsCorrect">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Błędne:</span>
+                                    <span class="text-red-400" id="basicsIncorrect">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Streak:</span>
+                                    <span class="text-neon-primary" id="basicsStreak">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Osiągnięcia</h3>
+                            <div class="space-y-2" id="basicsAchievementsList">
+                                <div class="flex items-center space-x-2 p-2 bg-surface rounded">
+                                    <div class="w-6 h-6 bg-neon-primary rounded-full flex items-center justify-center text-bg-dark text-xs">🏆</div>
+                                    <span class="text-sm">Pierwszy quiz</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wskazówki</h3>
+                            <div class="space-y-2 text-sm text-text-secondary" id="basicsTips">
+                                <div>• Czytaj pytania uważnie</div>
+                                <div>• Nie spiesz się</div>
+                                <div>• Skup się na dokładności</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Quiz -->
+            <div class="quiz-section" id="quiz-advanced">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="glass-effect rounded-lg p-8">
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-text-secondary">Pytanie <span id="advancedCurrentQuestion">1</span> z <span id="advancedTotalQuestions">20</span></span>
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-sm text-neon-primary">Punkty: <span id="advancedScore">0</span></span>
+                                        <span class="text-sm text-neon-info">Czas: <span id="advancedTime">10:00</span></span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-surface rounded-full h-3 mb-4">
+                                    <div class="bg-neon-info h-3 rounded-full progress-bar" style="width: 5%" id="advancedProgress"></div>
+                                </div>
+                            </div>
+
+                            <div id="advancedQuizContent">
+                                <h3 class="text-2xl font-semibold mb-6" id="advancedQuestionText">
+                                    Zaawansowane pytanie
+                                </h3>
+
+                                <div class="space-y-4" id="advancedQuizOptions"></div>
+
+                                <div class="mt-6 text-center">
+                                    <button id="advancedNextBtn" onclick="nextAdvancedQuestion()" class="bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold opacity-50 cursor-not-allowed" disabled>
+                                        Następne pytanie
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="advancedQuizResults" class="hidden text-center">
+                                <h3 class="text-3xl font-bold mb-4 text-neon-primary">Quiz zaawansowany ukończony!</h3>
+                                <div class="mb-6">
+                                    <div class="text-6xl font-bold text-neon-primary mb-2" id="advancedFinalScore">0</div>
+                                    <div class="text-xl text-text-secondary mb-4">na 20 punktów</div>
+                                    <div class="text-lg mb-6" id="advancedPercentage">0%</div>
+                                </div>
+                                <div class="flex justify-center gap-4">
+                                    <button onclick="restartAdvancedQuiz()" class="bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold hover-lift">
+                                        Spróbuj ponownie
+                                    </button>
+                                    <button onclick="showQuiz('leaderboard')" class="border-2 border-neon-primary text-neon-primary px-6 py-3 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all">
+                                        Zobacz ranking
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Statystyki</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Poprawne:</span>
+                                    <span class="text-green-400" id="advancedCorrect">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Błędne:</span>
+                                    <span class="text-red-400" id="advancedIncorrect">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Streak:</span>
+                                    <span class="text-neon-primary" id="advancedStreak">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wskazówki</h3>
+                            <div class="space-y-2 text-sm text-text-secondary" id="advancedTips">
+                                <div>• Pytania obejmują merge, rebase, konflikty, reflog, stash</div>
+                                <div>• Uważaj na efekty poleceń (reset vs revert)</div>
+                                <div>• Myśl o historii i bezpiecznych praktykach</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Challenges -->
+            <div class="quiz-section" id="quiz-challenges">
+                <div class="max-w-5xl mx-auto">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-display font-bold mb-2 text-neon-primary">Wyzwania</h2>
+                        <p class="text-text-secondary">Zadania praktyczne z punktacją i zapisem postępów</p>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-sm text-text-secondary">Postęp wyzwań</div>
+                            <div class="text-sm text-neon-primary"><span id="challengesCompleted">0</span>/<span id="challengesTotal">0</span></div>
+                        </div>
+                        <div class="w-full bg-surface rounded-full h-3">
+                            <div class="bg-neon-primary h-3 rounded-full progress-bar" style="width: 0%" id="challengesProgress"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6" id="challengesList">
+                        <!-- Filled by JS -->
+                    </div>
+
+                    <div class="text-center mt-8">
+                        <button onclick="resetChallenges()" class="border-2 border-neon-primary text-neon-primary px-6 py-3 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all">
+                            Resetuj wyzwania
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Leaderboard -->
+            <div class="quiz-section" id="quiz-leaderboard">
+                <div class="max-w-6xl mx-auto">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-display font-bold mb-2 text-neon-primary">Ranking</h2>
+                        <p class="text-text-secondary">Najlepsze wyniki z quizów podstawowego i zaawansowanego</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Top wyniki (procent)</h3>
+                            <div class="space-y-2" id="leaderboardTop"></div>
+                </div>
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Najszybsze czasy</h3>
+                            <div class="space-y-2" id="leaderboardTimes"></div>
+                        </div>
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Najlepsze serie</h3>
+                            <div class="space-y-2" id="leaderboardStreaks"></div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 mt-6">
+                        <h3 class="text-xl font-semibold mb-4">Ostatnie podejścia</h3>
+                        <div class="space-y-2" id="recentAttempts"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-border">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="text-2xl font-display font-bold neon-text mb-4">GitMaster</div>
+            <p class="text-text-secondary mb-6">
+                Interaktywny poradnik Git stworzony z myślą o developerach
+            </p>
+            <div class="text-sm text-text-muted">
+                © 2024 GitMaster. Wszystkie prawa zastrzeżone.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Quiz data
+        const basicsQuestions = [
+            {
+                question: "Jaką komendę używasz do inicjalizacji nowego repozytorium Git?",
+                options: ["git init", "git start", "git create", "git new"],
+                correct: 0,
+                explanation: "git init inicjalizuje nowe repozytorium Git w aktualnym katalogu."
+            },
+            {
+                question: "Która komenda służy do sprawdzenia statusu repozytorium?",
+                options: ["git check", "git status", "git info", "git state"],
+                correct: 1,
+                explanation: "git status pokazuje aktualny stan repozytorium - zmodyfikowane, staged i nieśledzone pliki."
+            },
+            {
+                question: "Jak poprawnie dodać wszystkie pliki do staging area?",
+                options: ["git add all", "git add *", "git add .", "git stage"],
+                correct: 2,
+                explanation: "git add . dodaje wszystkie pliki z aktualnego katalogu i podkatalogów do staging area."
+            },
+            {
+                question: "Jak zatwierdzić zmiany z komunikatem?",
+                options: ["git commit 'message'", "git commit -m 'message'", "git save 'message'", "git push 'message'"],
+                correct: 1,
+                explanation: "git commit -m 'message' zatwierdza zmiany z podanym komunikatem."
+            },
+            {
+                question: "Jak sprawdzić historię commitów w skróconej formie?",
+                options: ["git log --short", "git log --oneline", "git history", "git commits"],
+                correct: 1,
+                explanation: "git log --oneline pokazuje historię commitów w pojedynczych liniach."
+            },
+            {
+                question: "Jak poprawnie wysłać zmiany do zdalnego repozytorium?",
+                options: ["git push main origin", "git send origin main", "git push origin main", "git upload origin main"],
+                correct: 2,
+                explanation: "git push origin main - poprawna składnia to: git push [remote] [branch]"
+            },
+            {
+                question: "Jak pobrać zmiany z zdalnego repozytorium?",
+                options: ["git download", "git get", "git pull", "git fetch"],
+                correct: 2,
+                explanation: "git pull pobiera i scala zmiany z zdalnego repozytorium z aktualnym branch-em."
+            },
+            {
+                question: "Jak utworzyć nową gałąź?",
+                options: ["git branch new-feature", "git new-branch new-feature", "git create new-feature", "git add-branch new-feature"],
+                correct: 0,
+                explanation: "git branch [nazwa] tworzy nową gałąź o podanej nazwie."
+            },
+            {
+                question: "Jak przełączyć się na inną gałąź?",
+                options: ["git switch branch-name", "git checkout branch-name", "git change branch-name", "git move branch-name"],
+                correct: 1,
+                explanation: "git checkout [nazwa-gałęzi] przełącza się na wybraną gałąź."
+            },
+            {
+                question: "Jak scalić gałąź 'feature' z aktualną gałęzią?",
+                options: ["git merge feature", "git combine feature", "git join feature", "git integrate feature"],
+                correct: 0,
+                explanation: "git merge [nazwa-gałęzi] scala wybraną gałąź z aktualną."
+            },
+            {
+                question: "Jak anulować zmiany w pliku przed dodaniem do stage?",
+                options: ["git undo filename", "git restore filename", "git cancel filename", "git revert filename"],
+                correct: 1,
+                explanation: "git restore [plik] przywraca plik do stanu z ostatniego commita."
+            },
+            {
+                question: "Jak sklonować zdalne repozytorium?",
+                options: ["git copy URL", "git clone URL", "git download URL", "git get URL"],
+                correct: 1,
+                explanation: "git clone [URL] tworzy lokalną kopię zdalnego repozytorium."
+            },
+            {
+                question: "Jak dodać zdalne repozytorium o nazwie 'origin'?",
+                options: ["git remote add origin URL", "git add remote origin URL", "git origin add URL", "git remote origin URL"],
+                correct: 0,
+                explanation: "git remote add [nazwa] [URL] dodaje zdalne repozytorium."
+            },
+            {
+                question: "Jak sprawdzić różnice między working directory a staging area?",
+                options: ["git diff --staged", "git diff", "git status --diff", "git changes"],
+                correct: 1,
+                explanation: "git diff pokazuje różnice między working directory a staging area."
+            },
+            {
+                question: "Jak cofnąć ostatni commit (nie usuwając zmian)?",
+                options: ["git reset --hard HEAD~1", "git reset --soft HEAD~1", "git revert HEAD", "git undo HEAD"],
+                correct: 1,
+                explanation: "git reset --soft HEAD~1 cofa commit ale zachowuje zmiany w staging area."
+            }
+        ];
+        
+        // Quiz state
+        let currentBasicQuestion = 0;
+        let basicScore = 0;
+        let basicCorrect = 0;
+        let basicIncorrect = 0;
+        let basicStreak = 0;
+        let basicMaxStreak = 0;
+        let basicAnswered = false;
+        let basicStartTime = null;
+        let basicTimer = null;
+        
+        function showQuiz(quizType) {
+            // Hide all quiz sections
+            document.querySelectorAll('.quiz-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected quiz
+            document.getElementById(`quiz-${quizType}`).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.quiz-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-quiz="${quizType}"]`).classList.add('active');
+            
+            // Initialize quiz if needed
+            if (quizType === 'basics' && !basicStartTime) {
+                initBasicsQuiz();
+            }
+            if (quizType === 'advanced' && !advancedStartTime) {
+                initAdvancedQuiz();
+            }
+            if (quizType === 'leaderboard') {
+                renderLeaderboards();
+            }
+            if (quizType === 'challenges') {
+                initChallenges();
+            }
+        }
+        
+        function initBasicsQuiz() {
+            currentBasicQuestion = 0;
+            basicScore = 0;
+            basicCorrect = 0;
+            basicIncorrect = 0;
+            basicStreak = 0;
+            basicMaxStreak = 0;
+            basicAnswered = false;
+            basicStartTime = Date.now();
+            
+            loadBasicQuestion();
+            startBasicTimer();
+            
+            // Update UI
+            updateBasicStats();
+        }
+        
+        function loadBasicQuestion() {
+            if (currentBasicQuestion >= basicsQuestions.length) {
+                finishBasicsQuiz();
+                return;
+            }
+            
+            const question = basicsQuestions[currentBasicQuestion];
+            const questionText = document.getElementById('basicsQuestionText');
+            const quizOptions = document.getElementById('basicsQuizOptions');
+            const currentQuestionEl = document.getElementById('basicsCurrentQuestion');
+            const totalQuestionsEl = document.getElementById('basicsTotalQuestions');
+            const progressBar = document.getElementById('basicsProgress');
+            
+            if (questionText) questionText.textContent = question.question;
+            if (currentQuestionEl) currentQuestionEl.textContent = currentBasicQuestion + 1;
+            if (totalQuestionsEl) totalQuestionsEl.textContent = basicsQuestions.length;
+            
+            // Update progress
+            const progress = ((currentBasicQuestion + 1) / basicsQuestions.length) * 100;
+            if (progressBar) progressBar.style.width = progress + '%';
+            
+            // Load options
+            if (quizOptions) {
+                quizOptions.innerHTML = '';
+                question.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'quiz-option p-4 border border-border rounded-lg';
+                    optionEl.onclick = () => selectBasicAnswer(index);
+                    optionEl.innerHTML = `
+                        <span class="font-mono">${option}</span>
+                        <div class="text-sm text-text-muted mt-1">${getOptionDescription(option)}</div>
+                    `;
+                    quizOptions.appendChild(optionEl);
+                });
+            }
+            
+            // Reset next button
+            const nextBtn = document.getElementById('basicsNextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = true;
+                nextBtn.className = 'bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold opacity-50 cursor-not-allowed';
+            }
+            
+            basicAnswered = false;
+        }
+        
+        function getOptionDescription(option) {
+            const descriptions = {
+                'git init': 'Inicjalizuje nowe repozytorium Git',
+                'git start': 'Rozpoczyna projekt Git',
+                'git create': 'Tworzy nowe repozytorium',
+                'git new': 'Nowy projekt Git',
+                'git check': 'Sprawdza status',
+                'git status': 'Pokazuje aktualny stan',
+                'git info': 'Informacje o repozytorium',
+                'git state': 'Stan repozytorium',
+                'git add all': 'Dodaje wszystkie pliki',
+                'git add *': 'Dodaje pliki ze wzorcem',
+                'git add .': 'Dodaje wszystko z katalogu',
+                'git stage': 'Etapuje zmiany',
+                'git commit \'message\'': 'Zatwierdza ze skróconym komunikatem',
+                'git commit -m \'message\'': 'Zatwierdza z podanym komunikatem',
+                'git save \'message\'': 'Zapisuje zmiany',
+                'git push \'message\'': 'Wysyła ze skróconym komunikatem',
+                'git log --short': 'Skrócona historia',
+                'git log --oneline': 'Historia w jednej linii',
+                'git history': 'Historia commitów',
+                'git commits': 'Lista commitów',
+                'git push main origin': 'Wysyła main do origin',
+                'git send origin main': 'Wysyła origin do main',
+                'git push origin main': 'Poprawne: remote branch',
+                'git upload origin main': 'Wysyła origin do main',
+                'git download': 'Pobiera zmiany',
+                'git get': 'Pobiera i scala',
+                'git pull': 'Pobiera i scala zmiany',
+                'git fetch': 'Pobiera bez scalania',
+                'git branch new-feature': 'Tworzy nową gałąź',
+                'git new-branch new-feature': 'Nowa gałąź',
+                'git create new-feature': 'Tworzy gałąź',
+                'git add-branch new-feature': 'Dodaje gałąź',
+                'git switch branch-name': 'Przełącza gałąź',
+                'git checkout branch-name': 'Przełącza na gałąź',
+                'git change branch-name': 'Zmienia gałąź',
+                'git move branch-name': 'Przenosi gałąź',
+                'git merge feature': 'Scala feature',
+                'git combine feature': 'Łączy feature',
+                'git join feature': 'Dołącza feature',
+                'git integrate feature': 'Integruje feature',
+                'git undo filename': 'Cofa zmiany w pliku',
+                'git restore filename': 'Przywraca plik',
+                'git cancel filename': 'Anuluje zmiany',
+                'git revert filename': 'Cofa zmiany',
+                'git copy URL': 'Kopiuje repozytorium',
+                'git clone URL': 'Klonuje repozytorium',
+                'git download URL': 'Pobiera repozytorium',
+                'git get URL': 'Pobiera repozytorium',
+                'git remote add origin URL': 'Dodaje zdalne origin',
+                'git add remote origin URL': 'Dodaje origin',
+                'git origin add URL': 'Dodaje origin',
+                'git remote origin URL': 'Konfiguruje origin',
+                'git diff --staged': 'Różnice staged',
+                'git diff': 'Różnice working directory',
+                'git status --diff': 'Status z różnicami',
+                'git changes': 'Pokazuje zmiany',
+                'git reset --hard HEAD~1': 'Cofa commit tracąc zmiany',
+                'git reset --soft HEAD~1': 'Cofa commit zachowując zmiany',
+                'git revert HEAD': 'Odwraca commit',
+                'git undo HEAD': 'Cofa ostatni commit'
+            };
+            return descriptions[option] || 'Opis opcji';
+        }
+        
+        function selectBasicAnswer(answerIndex) {
+            if (basicAnswered) return;
+            
+            const question = basicsQuestions[currentBasicQuestion];
+            const options = document.querySelectorAll('#basicsQuizOptions .quiz-option');
+            const nextBtn = document.getElementById('basicsNextBtn');
+            
+            // Mark all options
+            options.forEach((option, index) => {
+                option.onclick = null;
+                option.classList.add('disabled');
+                
+                if (index === question.correct) {
+                    option.classList.add('correct');
+                } else if (index === answerIndex && index !== question.correct) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Update score and streak
+            if (answerIndex === question.correct) {
+                basicScore++;
+                basicCorrect++;
+                basicStreak++;
+                if (basicStreak > basicMaxStreak) {
+                    basicMaxStreak = basicStreak;
+                }
+                
+                // Add achievement for perfect answer streak
+                if (basicStreak === 5) {
+                    addAchievement('🔥', 'Hot streak!', '5 poprawnych z rzędu');
+                } else if (basicStreak === 10) {
+                    addAchievement('🔥', 'On fire!', '10 poprawnych z rzędu');
+                }
+            } else {
+                basicIncorrect++;
+                basicStreak = 0;
+                
+                // Show explanation
+                showExplanation(question.explanation);
+            }
+            
+            // Update score display
+            const scoreEl = document.getElementById('basicsScore');
+            if (scoreEl) scoreEl.textContent = basicScore;
+            
+            // Update stats
+            updateBasicStats();
+            
+            // Enable next button
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.className = 'bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold hover-lift';
+            }
+            
+            basicAnswered = true;
+        }
+        
+        function nextBasicQuestion() {
+            currentBasicQuestion++;
+            loadBasicQuestion();
+        }
+        
+        function updateBasicStats() {
+            const correctEl = document.getElementById('basicsCorrect');
+            const incorrectEl = document.getElementById('basicsIncorrect');
+            const streakEl = document.getElementById('basicsStreak');
+            
+            if (correctEl) correctEl.textContent = basicCorrect;
+            if (incorrectEl) incorrectEl.textContent = basicIncorrect;
+            if (streakEl) streakEl.textContent = basicStreak;
+        }
+        
+        function finishBasicsQuiz() {
+            clearInterval(basicTimer);
+            
+            const quizContent = document.getElementById('basicsQuizContent');
+            const quizResults = document.getElementById('basicsQuizResults');
+            const finalScore = document.getElementById('basicsFinalScore');
+            const percentage = document.getElementById('basicsPercentage');
+            // achievements container handled in generateAchievements
+            
+            if (quizContent) quizContent.classList.add('hidden');
+            if (quizResults) quizResults.classList.remove('hidden');
+            if (finalScore) finalScore.textContent = basicScore;
+            
+            const percent = Math.round((basicScore / basicsQuestions.length) * 100);
+            if (percentage) percentage.textContent = `${percent}%`;
+            
+            // Generate achievements
+            generateAchievements(percent);
+            
+            // Update user level
+            updateUserLevel(percent);
+            
+            // Save results
+            saveQuizResults('basics', {
+                score: basicScore,
+                total: basicsQuestions.length,
+                percentage: percent,
+                time: Date.now() - basicStartTime,
+                correct: basicCorrect,
+                incorrect: basicIncorrect,
+                maxStreak: basicMaxStreak
+            });
+        }
+
+        // Advanced quiz data/state
+        const advancedQuestions = [
+            { question: "Czym różni się merge od rebase?", options: ["Merge przepisuje historię, rebase scala", "Merge scala historie, rebase przepisuje historię", "Brak różnicy", "Rebase tworzy merge commit"], correct: 1, explanation: "Rebase przepisuje historię przekładając commity na nową bazę; merge scala historie i zachowuje rozgałęzienia." },
+            { question: "Której komendy użyjesz do odwrócenia zmian publicznego commita?", options: ["git reset --hard", "git revert", "git rebase -i", "git restore --staged"], correct: 1, explanation: "git revert tworzy nowy commit odwracający zmiany, bez niszczenia historii." },
+            { question: "Jak bezpiecznie wymusić push nadpisujący zdalny branch?", options: ["git push --force", "git push --force-with-lease", "git push --overwrite", "git push -f --overwrite"], correct: 1, explanation: "--force-with-lease sprawdza czy zdalny HEAD nie przesunął się niespodziewanie." },
+            { question: "Jak zobaczyć lokalną historię ruchów HEAD?", options: ["git reflog", "git log --oneline", "git fsck", "git show"], correct: 0, explanation: "git reflog zapisuje lokalne ruchy HEAD i pozwala odzyskać zmiany." },
+            { question: "Jak przenieść pojedynczy commit na aktualny branch?", options: ["git cherry-pick HASH", "git rebase HASH", "git merge HASH", "git restore HASH"], correct: 0, explanation: "git cherry-pick stosuje wskazany commit na bieżącym branchu." },
+            { question: "Jak dodać nieśledzone pliki do stash?", options: ["git stash -u", "git stash -a", "git stash --all", "Wszystkie powyższe"], correct: 3, explanation: "-u to include-untracked, -a/--all obejmuje również zignorowane." },
+            { question: "Który reset zostawia zmiany w staging area?", options: ["--soft", "--mixed", "--hard", "Żaden"], correct: 0, explanation: "--soft przesuwa HEAD, zostawiając zmiany w indeksie (staging)." },
+            { question: "Jak ustawić upstream dla nowego brancha podczas pierwszego push?", options: ["git push origin branch", "git push -u origin branch", "git push --set-upstream branch origin", "git push --track origin branch"], correct: 1, explanation: "-u/--set-upstream ustawia śledzenie zdalnego branchu." },
+            { question: "Jak rozwiązać konflikty po rebase?", options: ["git rebase --abort", "Popraw pliki, git add, git rebase --continue", "git reset --hard", "git merge --continue"], correct: 1, explanation: "Po naprawie plików i add, kontynuuj rebase --continue." },
+            { question: "Jak wylistować tagi i wypchnąć je?", options: ["git tags; git push --tags", "git tag; git push --tags", "git list tags; git push --all-tags", "git tag --list; git push --all-tags"], correct: 1, explanation: "git tag (lub git tag --list) listuje, a git push --tags wysyła tagi." }
+        ];
+
+        let currentAdvancedQuestion = 0;
+        let advancedScore = 0;
+        let advancedCorrect = 0;
+        let advancedIncorrect = 0;
+        let advancedStreak = 0;
+        let advancedMaxStreak = 0;
+        let advancedAnswered = false;
+        let advancedStartTime = null;
+        let advancedTimer = null;
+
+        function initAdvancedQuiz() {
+            currentAdvancedQuestion = 0;
+            advancedScore = 0;
+            advancedCorrect = 0;
+            advancedIncorrect = 0;
+            advancedStreak = 0;
+            advancedMaxStreak = 0;
+            advancedAnswered = false;
+            advancedStartTime = Date.now();
+            loadAdvancedQuestion();
+            startAdvancedTimer();
+            updateAdvancedStats();
+            document.getElementById('advancedTotalQuestions').textContent = advancedQuestions.length;
+        }
+
+        function loadAdvancedQuestion() {
+            if (currentAdvancedQuestion >= advancedQuestions.length) {
+                finishAdvancedQuiz();
+                return;
+            }
+            const q = advancedQuestions[currentAdvancedQuestion];
+            const qText = document.getElementById('advancedQuestionText');
+            const qOpts = document.getElementById('advancedQuizOptions');
+            const qIdx = document.getElementById('advancedCurrentQuestion');
+            const progressBar = document.getElementById('advancedProgress');
+            if (qText) qText.textContent = q.question;
+            if (qIdx) qIdx.textContent = currentAdvancedQuestion + 1;
+            const progress = ((currentAdvancedQuestion + 1) / advancedQuestions.length) * 100;
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (qOpts) {
+                qOpts.innerHTML = '';
+                q.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'quiz-option p-4 border border-border rounded-lg';
+                    optionEl.onclick = () => selectAdvancedAnswer(index);
+                    optionEl.innerHTML = `<span class="font-mono">${option}</span>`;
+                    qOpts.appendChild(optionEl);
+                });
+            }
+            const nextBtn = document.getElementById('advancedNextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = true;
+                nextBtn.className = 'bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold opacity-50 cursor-not-allowed';
+            }
+            advancedAnswered = false;
+        }
+
+        function selectAdvancedAnswer(answerIndex) {
+            if (advancedAnswered) return;
+            const q = advancedQuestions[currentAdvancedQuestion];
+            const options = document.querySelectorAll('#advancedQuizOptions .quiz-option');
+            const nextBtn = document.getElementById('advancedNextBtn');
+            options.forEach((option, index) => {
+                option.onclick = null;
+                option.classList.add('disabled');
+                if (index === q.correct) option.classList.add('correct');
+                else if (index === answerIndex) option.classList.add('incorrect');
+            });
+            if (answerIndex === q.correct) {
+                advancedScore++;
+                advancedCorrect++;
+                advancedStreak++;
+                if (advancedStreak > advancedMaxStreak) advancedMaxStreak = advancedStreak;
+            } else {
+                advancedIncorrect++;
+                advancedStreak = 0;
+                showExplanation(q.explanation);
+            }
+            const scoreEl = document.getElementById('advancedScore');
+            if (scoreEl) scoreEl.textContent = advancedScore;
+            updateAdvancedStats();
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.className = 'bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold hover-lift';
+            }
+            advancedAnswered = true;
+        }
+
+        function nextAdvancedQuestion() {
+            currentAdvancedQuestion++;
+            loadAdvancedQuestion();
+        }
+
+        function updateAdvancedStats() {
+            const correctEl = document.getElementById('advancedCorrect');
+            const incorrectEl = document.getElementById('advancedIncorrect');
+            const streakEl = document.getElementById('advancedStreak');
+            if (correctEl) correctEl.textContent = advancedCorrect;
+            if (incorrectEl) incorrectEl.textContent = advancedIncorrect;
+            if (streakEl) streakEl.textContent = advancedStreak;
+        }
+
+        function finishAdvancedQuiz() {
+            clearInterval(advancedTimer);
+            const quizContent = document.getElementById('advancedQuizContent');
+            const quizResults = document.getElementById('advancedQuizResults');
+            const finalScore = document.getElementById('advancedFinalScore');
+            const percentage = document.getElementById('advancedPercentage');
+            if (quizContent) quizContent.classList.add('hidden');
+            if (quizResults) quizResults.classList.remove('hidden');
+            if (finalScore) finalScore.textContent = advancedScore;
+            const percent = Math.round((advancedScore / advancedQuestions.length) * 100);
+            if (percentage) percentage.textContent = `${percent}%`;
+            saveQuizResults('advanced', {
+                score: advancedScore,
+                total: advancedQuestions.length,
+                percentage: percent,
+                time: Date.now() - advancedStartTime,
+                correct: advancedCorrect,
+                incorrect: advancedIncorrect,
+                maxStreak: advancedMaxStreak
+            });
+        }
+
+        function restartAdvancedQuiz() {
+            const quizContent = document.getElementById('advancedQuizContent');
+            const quizResults = document.getElementById('advancedQuizResults');
+            if (quizContent) quizContent.classList.remove('hidden');
+            if (quizResults) quizResults.classList.add('hidden');
+            initAdvancedQuiz();
+        }
+
+        function startAdvancedTimer() {
+            let timeLeft = 600; // 10 minutes
+            advancedTimer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                const timeEl = document.getElementById('advancedTime');
+                if (timeEl) timeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timeLeft--;
+                if (timeLeft < 0) {
+                    clearInterval(advancedTimer);
+                    finishAdvancedQuiz();
+                }
+            }, 1000);
+        }
+
+        // Challenges
+        const challenges = [
+            { id: 'fix-merge', title: 'Napraw konflikt merge', desc: 'Połącz zmiany z brancha feature z main i rozwiąż konflikt w pliku README.md', points: 20 },
+            { id: 'restore-commit', title: 'Przywróć utracony commit', desc: 'Odzyskaj commit za pomocą reflog i utwórz z niego nową gałąź', points: 25 },
+            { id: 'rewrite-history', title: 'Uporządkuj historię', desc: 'Użyj rebase -i, aby połączyć dwa drobne commity w jeden', points: 15 },
+            { id: 'safe-push', title: 'Bezpieczny push', desc: 'Wykonaj wymuszony push z użyciem force-with-lease po rebase', points: 10 },
+            { id: 'stash-switch', title: 'Stash i switch', desc: 'Odłóż zmiany na stash, przełącz gałąź i przywróć zmiany', points: 10 }
+        ];
+
+        function initChallenges() {
+            const list = document.getElementById('challengesList');
+            const totalEl = document.getElementById('challengesTotal');
+            const completedEl = document.getElementById('challengesCompleted');
+            const progressEl = document.getElementById('challengesProgress');
+            const completed = loadChallengeProgress();
+            if (list) {
+                list.innerHTML = challenges.map(ch => {
+                    const done = completed.includes(ch.id);
+                    return `
+                        <div class="glass-effect rounded-lg p-6 hover-lift ${done ? 'opacity-80' : ''}">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="text-lg font-semibold mb-1 ${done ? 'text-neon-info' : ''}">${ch.title}</h4>
+                                    <p class="text-sm text-text-secondary mb-3">${ch.desc}</p>
+                                    <div class="text-xs text-text-muted">Punkty: ${ch.points}</div>
+                                </div>
+                                <button onclick="toggleChallenge('${ch.id}')" class="${done ? 'border-2 border-neon-info text-neon-info' : 'bg-neon-primary text-bg-dark'} px-3 py-2 rounded-lg text-sm font-semibold hover-lift">${done ? 'Oznacz jako nieukończone' : 'Oznacz ukończone'}</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            if (totalEl) totalEl.textContent = challenges.length;
+            if (completedEl) completedEl.textContent = completed.length;
+            if (progressEl) progressEl.style.width = `${(completed.length / challenges.length) * 100}%`;
+        }
+
+        function loadChallengeProgress() {
+            return JSON.parse(localStorage.getItem('gitmaster-challenges') || '[]');
+        }
+
+        function saveChallengeProgress(list) {
+            localStorage.setItem('gitmaster-challenges', JSON.stringify(list));
+        }
+
+        function toggleChallenge(id) {
+            const list = loadChallengeProgress();
+            const idx = list.indexOf(id);
+            if (idx === -1) list.push(id); else list.splice(idx, 1);
+            saveChallengeProgress(list);
+            initChallenges();
+        }
+
+        function resetChallenges() {
+            saveChallengeProgress([]);
+            initChallenges();
+        }
+
+        // Leaderboards
+        function renderLeaderboards() {
+            const topEl = document.getElementById('leaderboardTop');
+            const timesEl = document.getElementById('leaderboardTimes');
+            const streaksEl = document.getElementById('leaderboardStreaks');
+            const recentEl = document.getElementById('recentAttempts');
+            const basics = JSON.parse(localStorage.getItem('gitmaster-quiz-basics') || '[]');
+            const advanced = JSON.parse(localStorage.getItem('gitmaster-quiz-advanced') || '[]');
+            const all = basics.concat(advanced);
+            const byPercent = [...all].sort((a,b) => b.percentage - a.percentage).slice(0,5);
+            const byTime = [...all].sort((a,b) => a.time - b.time).slice(0,5);
+            const byStreak = [...all].sort((a,b) => (b.maxStreak||0) - (a.maxStreak||0)).slice(0,5);
+            const recent = [...all].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0,10);
+            if (topEl) topEl.innerHTML = byPercent.map((r,i) => `<div class="flex justify-between text-sm"><span>${i+1}. ${r.percentage}%</span><span class="text-text-muted">${formatWhen(r.timestamp)}</span></div>`).join('') || '<div class="text-sm text-text-muted">Brak wyników</div>';
+            if (timesEl) timesEl.innerHTML = byTime.map((r,i) => `<div class="flex justify-between text-sm"><span>${i+1}. ${formatMs(r.time)}</span><span class="text-text-muted">${r.percentage}%</span></div>`).join('') || '<div class="text-sm text-text-muted">Brak wyników</div>';
+            if (streaksEl) streaksEl.innerHTML = byStreak.map((r,i) => `<div class="flex justify-between text-sm"><span>${i+1}. ${r.maxStreak||0} streak</span><span class="text-text-muted">${r.percentage}%</span></div>`).join('') || '<div class="text-sm text-text-muted">Brak wyników</div>';
+            if (recentEl) recentEl.innerHTML = recent.map((r) => `<div class="flex justify-between text-sm"><span>${new Date(r.timestamp).toLocaleString()}</span><span class="text-text-muted">${r.percentage}% • ${formatMs(r.time)}</span></div>`).join('') || '<div class="text-sm text-text-muted">Brak podejść</div>';
+        }
+
+        function formatMs(ms) {
+            const min = Math.floor(ms/60000);
+            const sec = Math.floor((ms%60000)/1000);
+            return `${min}m ${sec}s`;
+        }
+
+        function formatWhen(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            return d.toLocaleDateString();
+        }
+        
+        function generateAchievements(percentage) {
+            const achievementsEl = document.getElementById('basicsAchievements');
+            let achievements = [];
+            
+            if (percentage === 100) {
+                achievements.push({ icon: '🏆', title: 'Perfekcyjny!', desc: 'Wszystkie odpowiedzi poprawne' });
+            } else if (percentage >= 90) {
+                achievements.push({ icon: '🥇', title: 'Ekspert!', desc: 'Bardzo dobry wynik' });
+            } else if (percentage >= 80) {
+                achievements.push({ icon: '🥈', title: 'Zaawansowany!', desc: 'Dobry wynik' });
+            } else if (percentage >= 70) {
+                achievements.push({ icon: '🥉', title: 'Średniozaawansowany!', desc: 'Zadowalający wynik' });
+            }
+            
+            if (basicMaxStreak >= 10) {
+                achievements.push({ icon: '🔥', title: 'Hot streak!', desc: `${basicMaxStreak} poprawnych z rzędu` });
+            } else if (basicMaxStreak >= 5) {
+                achievements.push({ icon: '⚡', title: 'Good streak!', desc: `${basicMaxStreak} poprawnych z rzędu` });
+            }
+            
+            if (achievementsEl) {
+                achievementsEl.innerHTML = achievements.map(achievement => `
+                    <div class="achievement-badge inline-flex items-center space-x-2 p-3 bg-neon-primary/10 border border-neon-primary/30 rounded-lg mr-2 mb-2">
+                        <span class="text-2xl">${achievement.icon}</span>
+                        <div class="text-left">
+                            <div class="font-semibold text-neon-primary">${achievement.title}</div>
+                            <div class="text-sm text-text-muted">${achievement.desc}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function updateUserLevel(percentage) {
+            const levelEl = document.getElementById('userLevel');
+            let level = 'Początkujący';
+            
+            if (percentage >= 95) {
+                level = 'Ekspert';
+            } else if (percentage >= 85) {
+                level = 'Zaawansowany';
+            } else if (percentage >= 70) {
+                level = 'Średniozaawansowany';
+            } else if (percentage >= 50) {
+                level = 'Uczący się';
+            }
+            
+            if (levelEl) {
+                levelEl.textContent = level;
+            }
+        }
+        
+        function addAchievement(icon, title, desc) {
+            const achievementsList = document.getElementById('basicsAchievementsList');
+            if (achievementsList) {
+                const achievementEl = document.createElement('div');
+                achievementEl.className = 'flex items-center space-x-2 p-2 bg-neon-primary/10 rounded';
+                achievementEl.innerHTML = `
+                    <div class="w-6 h-6 bg-neon-primary rounded-full flex items-center justify-center text-bg-dark text-xs">${icon}</div>
+                    <div class="text-sm">
+                        <div class="font-semibold">${title}</div>
+                        <div class="text-text-muted">${desc}</div>
+                    </div>
+                `;
+                achievementsList.appendChild(achievementEl);
+            }
+        }
+        
+        function showExplanation(explanation) {
+            // Could add a toast notification or inline explanation
+            console.log('Explanation:', explanation);
+        }
+        
+        function startBasicTimer() {
+            let timeLeft = 300; // 5 minutes
+            
+            basicTimer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                const timeEl = document.getElementById('basicsTime');
+                
+                if (timeEl) {
+                    timeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+                
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(basicTimer);
+                    finishBasicsQuiz();
+                }
+            }, 1000);
+        }
+        
+        function restartBasicsQuiz() {
+            // Reset quiz state
+            currentBasicQuestion = 0;
+            basicScore = 0;
+            basicCorrect = 0;
+            basicIncorrect = 0;
+            basicStreak = 0;
+            basicMaxStreak = 0;
+            basicAnswered = false;
+            basicStartTime = Date.now();
+            
+            // Reset UI
+            const quizContent = document.getElementById('basicsQuizContent');
+            const quizResults = document.getElementById('basicsQuizResults');
+            
+            if (quizContent) quizContent.classList.remove('hidden');
+            if (quizResults) quizResults.classList.add('hidden');
+            
+            loadBasicQuestion();
+            startBasicTimer();
+            updateBasicStats();
+        }
+        
+        function saveQuizResults(quizType, results) {
+            const key = `gitmaster-quiz-${quizType}`;
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            existing.push({
+                ...results,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem(key, JSON.stringify(existing));
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showQuiz('basics');
+        });
+        
+        // Make functions global
+        window.showQuiz = showQuiz;
+        window.selectBasicAnswer = selectBasicAnswer;
+        window.nextBasicQuestion = nextBasicQuestion;
+        window.restartBasicsQuiz = restartBasicsQuiz;
+        window.selectAdvancedAnswer = selectAdvancedAnswer;
+        window.nextAdvancedQuestion = nextAdvancedQuestion;
+        window.restartAdvancedQuiz = restartAdvancedQuiz;
+        window.resetChallenges = resetChallenges;
+    </script>
+</body>
+</html>

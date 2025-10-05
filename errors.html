@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Błędy Git i Rozwiązania - GitMaster</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-dark': '#0a0e1a',
+                        'bg-light': '#1a1f2e',
+                        'surface': '#252a3a',
+                        'border': '#3a3f4f',
+                        'neon-primary': '#00ff88',
+                        'neon-secondary': '#ff6b6b',
+                        'neon-warning': '#ffd93d',
+                        'neon-info': '#4ecdc4',
+                        'neon-purple': '#a78bfa',
+                        'text-primary': '#ffffff',
+                        'text-secondary': '#b8c5d1',
+                        'text-muted': '#6b7280'
+                    },
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                        'sans': ['Inter', 'sans-serif'],
+                        'display': ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(37, 42, 58, 0.8);
+        }
+        
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        .error-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .error-card:hover {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+        
+        .solution-card {
+            border-left: 4px solid #00ff88;
+        }
+        
+        .code-block {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1a1f2e;
+            border: 1px solid #3a3f4f;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        .error-section {
+            display: none;
+        }
+        
+        .error-section.active {
+            display: block;
+        }
+        
+        .search-highlight {
+            background: rgba(255, 217, 61, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        .severity-high {
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .severity-medium {
+            border-left: 4px solid #ffd93d;
+        }
+        
+        .severity-low {
+            border-left: 4px solid #4ecdc4;
+        }
+    </style>
+</head>
+<body class="bg-bg-dark text-text-primary font-sans">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl font-display font-bold neon-text">
+                        GitMaster
+                    </a>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="index.html" class="text-text-secondary hover:text-neon-primary transition-colors">Strona Główna</a>
+                        <a href="tutorial.html" class="text-text-secondary hover:text-neon-primary transition-colors">Tutorial</a>
+                        <a href="generator.html" class="text-text-secondary hover:text-neon-primary transition-colors">Generator</a>
+                        <a href="quiz.html" class="text-text-secondary hover:text-neon-primary transition-colors">Quiz</a>
+                        <a href="errors.html" class="text-neon-primary">Błędy</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2">
+                        <input type="text" id="searchErrors" placeholder="Szukaj błędu..." class="px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:border-neon-primary outline-none" onkeyup="searchErrors()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-5xl md:text-6xl font-display font-bold mb-6">
+                <span class="neon-text">Błędy Git</span> i Rozwiązania
+            </h1>
+            <p class="text-xl md:text-2xl text-text-secondary mb-8 max-w-3xl mx-auto">
+                Najczęstsze problemy z Git i ich rozwiązania. 
+                Znajdź szybko rozwiązanie swojego problemu.
+            </p>
+        </div>
+    </section>
+    
+    <!-- Error Categories -->
+    <section class="py-8 px-4 border-b border-border">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button onclick="showErrorCategory('push-pull')" class="error-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors active" data-category="push-pull">
+                    Push/Pull
+                </button>
+                <button onclick="showErrorCategory('merge-conflicts')" class="error-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-category="merge-conflicts">
+                    Konflikty
+                </button>
+                <button onclick="showErrorCategory('configuration')" class="error-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-category="configuration">
+                    Konfiguracja
+                </button>
+                <button onclick="showErrorCategory('authentication')" class="error-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-category="authentication">
+                    Autentykacja
+                </button>
+                <button onclick="showErrorCategory('branching')" class="error-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-category="branching">
+                    Gałęzie
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Error Content -->
+    <section class="py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Push/Pull Errors -->
+            <div class="error-section active" id="errors-push-pull">
+                <div class="space-y-8">
+                    <div class="glass-effect rounded-lg p-6 severity-high">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-red-400 mb-2">
+                                    error: src refspec main does not match any
+                                </h3>
+                                <p class="text-text-secondary">
+                                    Błąd występuje gdy próbujesz wysłać branch, który nie istnieje lokalnie.
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">WYSOKI</span>
+                                <button onclick="toggleSolution('error-1')" class="text-neon-primary hover:underline text-sm">
+                                    Rozwiąż
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="error-1-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Rozwiązanie:</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-medium mb-2">1. Sprawdź dostępne branche:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git branch</div>
+                                            <div class="text-text-muted">* main</div>
+                                            <div class="text-text-muted">  master</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">2. Upewnij się, że masz commit:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git log --oneline</div>
+                                            <div class="text-text-muted"># Jeśli brak commitów, najpierw je utwórz</div>
+                                            <div class="text-neon-primary">$ git add .</div>
+                                            <div class="text-neon-primary">$ git commit -m "Initial commit"</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">3. Poprawna komenda push:</h5>
+                                        <div class="code-block">
+                                            <div class="text-green-400">$ git push origin main</div>
+                                            <div class="text-text-muted"># Lub jeśli używasz master:</div>
+                                            <div class="text-green-400">$ git push origin master</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg">
+                                        <h5 class="font-medium text-yellow-400 mb-2">Prewencja:</h5>
+                                        <ul class="text-sm text-text-secondary space-y-1">
+                                            <li>• Zawsze sprawdzaj nazwę brancha przed pushem</li>
+                                            <li>• Użyj git status aby potwierdzić aktualny branch</li>
+                                            <li>• Upewnij się, że masz co najmniej jeden commit</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-lg p-6 severity-high">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-red-400 mb-2">
+                                    failed to push some refs to
+                                </h3>
+                                <p class="text-text-secondary">
+                                    Zdalne repozytorium ma zmiany, których nie masz lokalnie.
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">WYSOKI</span>
+                                <button onclick="toggleSolution('error-2')" class="text-neon-primary hover:underline text-sm">
+                                    Rozwiąż
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="error-2-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Rozwiązanie:</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-medium mb-2">1. Najpierw pobierz zmiany:</h5>
+                                        <div class="code-block">
+                                            <div class="text-green-400">$ git pull origin main</div>
+                                            <div class="text-text-muted"># Lub użyj rebase dla czystszej historii:</div>
+                                            <div class="text-green-400">$ git pull --rebase origin main</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">2. Rozwiąż ewentualne konflikty:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-primary"># Git pokaże pliki z konfliktami</div>
+                                            <div class="text-neon-primary">$ git status</div>
+                                            <div class="text-text-primary"># Edytuj pliki i rozwiąż konflikty</div>
+                                            <div class="text-neon-primary">$ git add .</div>
+                                            <div class="text-neon-primary">$ git commit -m "Resolve conflicts"</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">3. Wyślij swoje zmiany:</h5>
+                                        <div class="code-block">
+                                            <div class="text-green-400">$ git push origin main</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-lg">
+                                        <h5 class="font-medium text-blue-400 mb-2">Alternatywne rozwiązania:</h5>
+                                        <div class="space-y-2 text-sm">
+                                            <div class="code-block">
+                                                <div class="text-neon-primary"># Jeśli chcesz nadpisać zdalne zmiany (OSTROŻNIE!)</div>
+                                                <div class="text-red-400">$ git push --force origin main</div>
+                                                <div class="text-text-muted"># Bezpieczniejsza wersja:</div>
+                                                <div class="text-yellow-400">$ git push --force-with-lease origin main</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-lg p-6 severity-medium">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">
+                                    Permission denied (publickey)
+                                </h3>
+                                <p class="text-text-secondary">
+                                    Problem z autentykacją SSH podczas próby połączenia z zdalnym repozytorium.
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('error-3')" class="text-neon-primary hover:underline text-sm">
+                                    Rozwiąż
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="error-3-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Rozwiązanie:</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-medium mb-2">1. Sprawdź istniejące klucze SSH:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ ls -la ~/.ssh</div>
+                                            <div class="text-text-muted"># Powinieneś zobaczyć id_rsa, id_rsa.pub lub similar</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">2. Jeśli brak kluczy, wygeneruj nowe:</h5>
+                                        <div class="code-block">
+                                            <div class="text-neon-primary">$ ssh-keygen -t ed25519 -C "your-email@example.com"</div>
+                                            <div class="text-text-primary"># Lub dla starszych systemów:</div>
+                                            <div class="text-neon-primary">$ ssh-keygen -t rsa -b 4096 -C "your-email@example.com"</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">3. Dodaj klucz do ssh-agent:</h5>
+                                        <div class="code-block">
+                                            <div class="text-neon-primary">$ eval "$(ssh-agent -s)"</div>
+                                            <div class="text-neon-primary">$ ssh-add ~/.ssh/id_ed25519</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">4. Skopiuj klucz publiczny do GitHub:</h5>
+                                        <div class="code-block">
+                                            <div class="text-neon-primary">$ cat ~/.ssh/id_ed25519.pub</div>
+                                            <div class="text-text-muted"># Skopiuj wynik i dodaj do GitHub → Settings → SSH keys</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">5. Przetestuj połączenie:</h5>
+                                        <div class="code-block">
+                                            <div class="text-green-400">$ ssh -T git@github.com</div>
+                                            <div class="text-text-muted"># Powinieneś zobaczyć wiadomość powitalną</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Merge Conflicts -->
+            <div class="error-section" id="errors-merge-conflicts">
+                <div class="space-y-8">
+                    <div class="glass-effect rounded-lg p-6 severity-high">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-red-400 mb-2">
+                                    CONFLICT (content): Merge conflict in file.txt
+                                </h3>
+                                <p class="text-text-secondary">
+                                    Wystąpił konflikt podczas próby scalenia zmian z różnych źródeł.
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">WYSOKI</span>
+                                <button onclick="toggleSolution('error-4')" class="text-neon-primary hover:underline text-sm">
+                                    Rozwiąż
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="error-4-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Rozwiązanie krok po kroku:</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h5 class="font-medium mb-2">1. Sprawdź status repozytorium:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-primary">$ git status</div>
+                                            <div class="text-text-muted"># Git pokaże pliki z konfliktami</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">2. Otwórz plik z konfliktem:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-primary"># Plik będzie zawierał markery konfliktu:</div>
+                                            <div class="text-yellow-400">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</div>
+                                            <div class="text-text-primary">Twoja wersja kodu</div>
+                                            <div class="text-yellow-400">=======</div>
+                                            <div class="text-text-primary">Wersja z brancha feature</div>
+                                            <div class="text-yellow-400">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">3. Edytuj plik i rozwiąż konflikt:</h5>
+                                        <div class="code-block">
+                                            <div class="text-text-muted"># Usuń markery konfliktu i zostaw poprawną wersję</div>
+                                            <div class="text-green-400"># Poprawna wersja kodu po rozwiązaniu konfliktu</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">4. Dodaj rozwiązany plik:</h5>
+                                        <div class="code-block">
+                                            <div class="text-green-400">$ git add file.txt</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-medium mb-2">5. Zatwierdź rozwiązanie konfliktu:</h5>
+                                        <div class="code-block">
+                                            <div class="text-green-400">$ git commit -m "Resolve merge conflict in file.txt"</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-lg">
+                                        <h5 class="font-medium text-blue-400 mb-2">Przydatne narzędzia:</h5>
+                                        <div class="space-y-2 text-sm">
+                                            <div class="code-block">
+                                                <div class="text-neon-primary"># Użyj mergetool dla graficznego rozwiązywania</div>
+                                                <div class="text-text-primary">$ git mergetool</div>
+                                                <div class="text-text-primary">$ git config --global merge.tool vimdiff</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuration Errors -->
+            <div class="error-section" id="errors-configuration">
+                <div class="space-y-8">
+                    <div class="glass-effect rounded-lg p-6 severity-medium error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">Please tell me who you are</h3>
+                                <p class="text-text-secondary">Brak skonfigurowanego <span class="font-mono">user.name</span> i <span class="font-mono">user.email</span> dla commitów.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('cfg-1')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="cfg-1-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Skonfiguruj dane użytkownika</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git config --global user.name "Imię Nazwisko"</div>
+                                    <div class="text-text-primary">git config --global user.email "email@example.com"</div>
+                                    <div class="text-neon-primary mt-3"># Tylko dla repo (bez --global)</div>
+                                    <div class="text-text-primary">git config user.name "Imię Nazwisko"</div>
+                                    <div class="text-text-primary">git config user.email "email@example.com"</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">Niewłaściwe końce linii (CRLF/LF)</h3>
+                                <p class="text-text-secondary">Różnice CRLF/LF powodują zbędne zmiany plików między systemami.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('cfg-2')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="cfg-2-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Ustawienia zależnie od OS</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-neon-primary"># Windows</div>
+                                    <div class="text-text-primary">git config --global core.autocrlf true</div>
+                                    <div class="text-neon-primary mt-3"># macOS/Linux</div>
+                                    <div class="text-text-primary">git config --global core.autocrlf input</div>
+                                    <div class="text-neon-primary mt-3"># Wymuś LF per repo</div>
+                                    <div class="text-text-primary">echo "* text=auto eol=lf" > .gitattributes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">.gitignore nie działa</h3>
+                                <p class="text-text-secondary">Pliki już śledzone nie zostaną zignorowane automatycznie.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('cfg-3')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="cfg-3-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Przestań śledzić i dodaj do .gitignore</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">echo "node_modules/" >> .gitignore</div>
+                                    <div class="text-text-primary">git rm -r --cached node_modules</div>
+                                    <div class="text-text-primary">git add . && git commit -m "Respect .gitignore"</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-medium error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">remote origin already exists</h3>
+                                <p class="text-text-secondary">Dodano już remote o tej nazwie.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('cfg-4')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="cfg-4-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Zmień lub usuń remote</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git remote -v</div>
+                                    <div class="text-neon-primary mt-3"># Aktualizuj URL</div>
+                                    <div class="text-text-primary">git remote set-url origin https://github.com/user/repo.git</div>
+                                    <div class="text-neon-primary mt-3"># Albo usuń i dodaj ponownie</div>
+                                    <div class="text-text-primary">git remote remove origin</div>
+                                    <div class="text-text-primary">git remote add origin https://github.com/user/repo.git</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Authentication Errors -->
+            <div class="error-section" id="errors-authentication">
+                <div class="space-y-8">
+                    <div class="glass-effect rounded-lg p-6 severity-medium error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">Authentication failed for 'https://...'</h3>
+                                <p class="text-text-secondary">Błędne hasło lub wymagany Personal Access Token (PAT).</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('auth-1')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="auth-1-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Użyj PAT zamiast hasła</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-neon-primary"># Skonfiguruj helper zapamiętujący poświadczenia</div>
+                                    <div class="text-text-primary">git config --global credential.helper store</div>
+                                    <div class="text-neon-primary mt-3"># Następny push poprosi o login i PAT</div>
+                                    <div class="text-text-primary">git push</div>
+                                </div>
+                                <p class="text-text-secondary mt-3">Utwórz PAT z odpowiednimi uprawnieniami (repo, workflow) w ustawieniach platformy (GitHub/GitLab).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-medium error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">Support for password authentication was removed</h3>
+                                <p class="text-text-secondary">Serwisy jak GitHub wymagają tokenów lub SSH.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('auth-2')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="auth-2-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Przejdź na SSH lub PAT</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-neon-primary"># SSH (zalecane)</div>
+                                    <div class="text-text-primary">ssh-keygen -t ed25519 -C "email@example.com"</div>
+                                    <div class="text-text-primary">ssh -T git@github.com</div>
+                                    <div class="text-neon-primary mt-3"># Lub ustaw remote na HTTPS + PAT</div>
+                                    <div class="text-text-primary">git remote set-url origin https://github.com/user/repo.git</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">insufficient scopes dla tokenu</h3>
+                                <p class="text-text-secondary">Token nie ma wymaganych uprawnień (np. repo).</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('auth-3')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="auth-3-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Zaktualizuj zakresy tokenu</h4>
+                                <p class="text-text-secondary mb-3">Wygeneruj nowy token z wymaganymi scope (np. <span class="font-mono">repo</span>, <span class="font-mono">workflow</span>).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">SSL certificate problem</h3>
+                                <p class="text-text-secondary">Problemy z weryfikacją certyfikatu HTTPS.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('auth-4')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="auth-4-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Zaufaj właściwemu CA (zalecane)</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary"># Zaktualizuj certyfikaty systemowe/CA</div>
+                                    <div class="text-text-primary"># (Unikaj wyłączania weryfikacji)</div>
+                                </div>
+                                <p class="text-text-secondary mt-3">W ostateczności (na własne ryzyko): <span class="font-mono">git config http.sslVerify false</span>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Branching Errors -->
+            <div class="error-section" id="errors-branching">
+                <div class="space-y-8">
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">Cannot delete branch 'X' checked out at 'Y'</h3>
+                                <p class="text-text-secondary">Nie można usunąć bieżącej gałęzi.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('br-1')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="br-1-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Przełącz gałąź, potem usuń</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git switch main</div>
+                                    <div class="text-text-primary">git branch -d feature/x</div>
+                                    <div class="text-neon-primary mt-3"># Wymuś (jeśli trzeba)</div>
+                                    <div class="text-text-primary">git branch -D feature/x</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-medium error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">error: failed to push some refs (non-fast-forward)</h3>
+                                <p class="text-text-secondary">Zdalny branch zawiera nowe commity.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('br-2')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="br-2-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Zsynchronizuj i wypchnij</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git pull --rebase origin main</div>
+                                    <div class="text-text-primary"># Rozwiąż konflikty, potem</div>
+                                    <div class="text-text-primary">git push origin main</div>
+                                    <div class="text-neon-primary mt-3"># Ostatecznie (ostrożnie)</div>
+                                    <div class="text-text-primary">git push --force-with-lease origin main</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-medium error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-400 mb-2">You are in 'detached HEAD' state</h3>
+                                <p class="text-text-secondary">Pracujesz na commicie bez gałęzi.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">ŚREDNI</span>
+                                <button onclick="toggleSolution('br-3')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="br-3-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Utwórz nową gałąź z tego miejsca</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git switch -c fix/detached</div>
+                                    <div class="text-text-primary">git push -u origin fix/detached</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">Usunięcie zdalnej gałęzi</h3>
+                                <p class="text-text-secondary">Różne składnie dla usuwania remote branch.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('br-4')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="br-4-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Poprawne komendy</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git push origin --delete feature/x</div>
+                                    <div class="text-text-primary"># lub</div>
+                                    <div class="text-text-primary">git push origin :feature/x</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 severity-low error-card">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-neon-info mb-2">Rebase w toku</h3>
+                                <p class="text-text-secondary">Operacja rebase wymaga kontynuacji lub przerwania.</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 bg-neon-info/20 text-neon-info rounded text-xs">NISKI</span>
+                                <button onclick="toggleSolution('br-5')" class="text-neon-primary hover:underline text-sm">Rozwiąż</button>
+                            </div>
+                        </div>
+                        <div id="br-5-solution" class="hidden mt-6 pt-6 border-t border-border">
+                            <div class="solution-card bg-surface/50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-neon-primary mb-3">Dokończ lub przerwij</h4>
+                                <div class="code-block text-sm">
+                                    <div class="text-text-primary">git status</div>
+                                    <div class="text-text-primary"># napraw konflikty, następnie</div>
+                                    <div class="text-text-primary">git add .</div>
+                                    <div class="text-text-primary">git rebase --continue</div>
+                                    <div class="text-neon-primary mt-3"># przerwij</div>
+                                    <div class="text-text-primary">git rebase --abort</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Quick Solutions -->
+    <section class="py-12 px-4 bg-bg-light/50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-display font-bold mb-4">
+                    Szybkie <span class="neon-text">Rozwiązania</span>
+                </h2>
+                <p class="text-xl text-text-secondary">
+                    Najczęściej używane komendy do rozwiązywania problemów
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <h3 class="text-lg font-semibold mb-4 text-neon-primary">Cofnij ostatni commit</h3>
+                    <div class="code-block text-sm mb-4">
+                        <div class="text-green-400"># Zachowaj zmiany w staging area</div>
+                        <div class="text-text-primary">git reset --soft HEAD~1</div>
+                        <div class="text-green-400 mt-2"># Przenieś zmiany do working directory</div>
+                        <div class="text-text-primary">git reset --mixed HEAD~1</div>
+                        <div class="text-red-400 mt-2"># Usuń zmiany całkowicie</div>
+                        <div class="text-text-primary">git reset --hard HEAD~1</div>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                        Użyj --soft aby zachować zmiany w staging area, --mixed aby przenieść do working directory, lub --hard aby usunąć całkowicie.
+                    </p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <h3 class="text-lg font-semibold mb-4 text-neon-primary">Wyczyść nieśledzone pliki</h3>
+                    <div class="code-block text-sm mb-4">
+                        <div class="text-green-400"># Sprawdź co zostanie usunięte</div>
+                        <div class="text-text-primary">git clean -n</div>
+                        <div class="text-red-400 mt-2"># Usuń nieśledzone pliki</div>
+                        <div class="text-text-primary">git clean -f</div>
+                        <div class="text-red-400 mt-2"># Usuń także katalogi</div>
+                        <div class="text-text-primary">git clean -fd</div>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                        Użyj git clean aby usunąć nieśledzone pliki. Zawsze sprawdź z flagą -n przed usunięciem.
+                    </p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <h3 class="text-lg font-semibold mb-4 text-neon-primary">Przywróć usunięty branch</h3>
+                    <div class="code-block text-sm mb-4">
+                        <div class="text-green-400"># Znajdź hash usuniętego commita</div>
+                        <div class="text-text-primary">git reflog</div>
+                        <div class="text-green-400 mt-2"># Przywróć branch</div>
+                        <div class="text-text-primary">git checkout -b branch-name HASH</div>
+                        <div class="text-green-400 mt-2"># Lub użyj fsck</div>
+                        <div class="text-text-primary">git fsck --lost-found</div>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                        Użyj git reflog aby znaleźć hash usuniętego commita, następnie przywróć branch używając tego hasha.
+                    </p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <h3 class="text-lg font-semibold mb-4 text-neon-primary">Zmień ostatni commit</h3>
+                    <div class="code-block text-sm mb-4">
+                        <div class="text-green-400"># Zmień wiadomość commita</div>
+                        <div class="text-text-primary">git commit --amend -m "New message"</div>
+                        <div class="text-green-400 mt-2"># Dodaj więcej plików do ostatniego commita</div>
+                        <div class="text-text-primary">git add forgotten-file.txt</div>
+                        <div class="text-text-primary">git commit --amend --no-edit</div>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                        Użyj git commit --amend aby zmienić ostatni commit. Uważaj przy pracy zespołowej!
+                    </p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <h3 class="text-lg font-semibold mb-4 text-neon-primary">Stash - tymczasowe zapisy</h3>
+                    <div class="code-block text-sm mb-4">
+                        <div class="text-green-400"># Zapisz zmiany tymczasowo</div>
+                        <div class="text-text-primary">git stash</div>
+                        <div class="text-green-400 mt-2"># Przywróć ostatnie zmiany</div>
+                        <div class="text-text-primary">git stash pop</div>
+                        <div class="text-green-400 mt-2"># Lista zapisanych zmian</div>
+                        <div class="text-text-primary">git stash list</div>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                        Użyj git stash aby tymczasowo zapisać zmiany i przełączyć się na inny branch.
+                    </p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <h3 class="text-lg font-semibold mb-4 text-neon-primary">Cherry-pick - wybierz commit</h3>
+                    <div class="code-block text-sm mb-4">
+                        <div class="text-green-400"># Znajdź hash commita</div>
+                        <div class="text-text-primary">git log --oneline</div>
+                        <div class="text-green-400 mt-2"># Przenieś konkretny commit</div>
+                        <div class="text-text-primary">git cherry-pick abc123</div>
+                        <div class="text-green-400 mt-2"># Przenieś kilka commitów</div>
+                        <div class="text-text-primary">git cherry-pick abc123..def456</div>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                        Użyj git cherry-pick aby przenieść konkretne commity z innego brancha do aktualnego.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-border">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="text-2xl font-display font-bold neon-text mb-4">GitMaster</div>
+            <p class="text-text-secondary mb-6">
+                Interaktywny poradnik Git stworzony z myślą o developerach
+            </p>
+            <div class="text-sm text-text-muted">
+                © 2024 GitMaster. Wszystkie prawa zastrzeżone.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        let currentCategory = 'push-pull';
+        
+        function showErrorCategory(category) {
+            // Hide all error sections
+            document.querySelectorAll('.error-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected category
+            document.getElementById(`errors-${category}`).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.error-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            
+            currentCategory = category;
+        }
+        
+        function toggleSolution(errorId) {
+            const solution = document.getElementById(`${errorId}-solution`);
+            if (solution) {
+                solution.classList.toggle('hidden');
+            }
+        }
+        
+        function searchErrors() {
+            const searchTerm = document.getElementById('searchErrors').value.toLowerCase();
+            const errorCards = document.querySelectorAll('.error-card');
+            
+            errorCards.forEach(card => {
+                const errorText = card.textContent.toLowerCase();
+                if (errorText.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    // Highlight search term
+                    highlightSearchTerm(card, searchTerm);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        function highlightSearchTerm(element, term) {
+            if (!term) return;
+            
+            const walker = document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+            
+            textNodes.forEach(textNode => {
+                const text = textNode.textContent;
+                const regex = new RegExp(`(${term})`, 'gi');
+                if (regex.test(text)) {
+                    const highlightedText = text.replace(regex, '<span class="search-highlight">$1</span>');
+                    const wrapper = document.createElement('span');
+                    wrapper.innerHTML = highlightedText;
+                    textNode.parentNode.replaceChild(wrapper, textNode);
+                }
+            });
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showErrorCategory('push-pull');
+        });
+        
+        // Make functions global
+        window.showErrorCategory = showErrorCategory;
+        window.toggleSolution = toggleSolution;
+        window.searchErrors = searchErrors;
+    </script>
+</body>
+</html>

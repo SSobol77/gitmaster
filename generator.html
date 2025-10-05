@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Komend Git - GitMaster</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-dark': '#0a0e1a',
+                        'bg-light': '#1a1f2e',
+                        'surface': '#252a3a',
+                        'border': '#3a3f4f',
+                        'neon-primary': '#00ff88',
+                        'neon-secondary': '#ff6b6b',
+                        'neon-warning': '#ffd93d',
+                        'neon-info': '#4ecdc4',
+                        'neon-purple': '#a78bfa',
+                        'text-primary': '#ffffff',
+                        'text-secondary': '#b8c5d1',
+                        'text-muted': '#6b7280'
+                    },
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                        'sans': ['Inter', 'sans-serif'],
+                        'display': ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(37, 42, 58, 0.8);
+        }
+        
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        .code-output {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1a1f2e;
+            border: 1px solid #3a3f4f;
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 60px;
+            word-break: break-all;
+        }
+        
+        .generator-section {
+            display: none;
+        }
+        
+        .generator-section.active {
+            display: block;
+        }
+        
+        .copy-success {
+            animation: copySuccess 0.3s ease;
+        }
+        
+        @keyframes copySuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .option-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .option-card:hover {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .option-card.selected {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-bg-dark text-text-primary font-sans">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl font-display font-bold neon-text">
+                        GitMaster
+                    </a>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="index.html" class="text-text-secondary hover:text-neon-primary transition-colors">Strona Główna</a>
+                        <a href="tutorial.html" class="text-text-secondary hover:text-neon-primary transition-colors">Tutorial</a>
+                        <a href="generator.html" class="text-neon-primary">Generator</a>
+                        <a href="quiz.html" class="text-text-secondary hover:text-neon-primary transition-colors">Quiz</a>
+                        <a href="errors.html" class="text-text-secondary hover:text-neon-primary transition-colors">Błędy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-5xl md:text-6xl font-display font-bold mb-6">
+                Generator <span class="neon-text">Komend Git</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-text-secondary mb-8 max-w-3xl mx-auto">
+                Twórz skomplikowane komendy Git przez intuicyjny interfejs wizualny. 
+                Wybierz opcje, a my wygenerujemy gotową komendę do skopiowania.
+            </p>
+        </div>
+    </section>
+    
+    <!-- Generator Navigation -->
+    <section class="py-8 px-4 border-b border-border">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button onclick="showGenerator('basic')" class="generator-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors active" data-generator="basic">
+                    Podstawowe
+                </button>
+                <button onclick="showGenerator('remote')" class="generator-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-generator="remote">
+                    Zdalne
+                </button>
+                <button onclick="showGenerator('branch')" class="generator-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-generator="branch">
+                    Gałęzie
+                </button>
+                <button onclick="showGenerator('advanced')" class="generator-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-generator="advanced">
+                    Zaawansowane
+                </button>
+                <button onclick="showGenerator('alias')" class="generator-nav-btn px-6 py-3 rounded-lg border border-border hover:border-neon-primary transition-colors" data-generator="alias">
+                    Alias
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Generator Content -->
+    <section class="py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Basic Commands Generator -->
+            <div class="generator-section active" id="generator-basic">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="glass-effect rounded-lg p-6">
+                        <h2 class="text-2xl font-display font-bold mb-6 text-neon-primary">Podstawowe komendy</h2>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Operacja:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('operation', 'status', this)">
+                                        <div class="font-semibold">Status</div>
+                                        <div class="text-sm text-text-muted">Sprawdź status</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('operation', 'add', this)">
+                                        <div class="font-semibold">Add</div>
+                                        <div class="text-sm text-text-muted">Dodaj pliki</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('operation', 'commit', this)">
+                                        <div class="font-semibold">Commit</div>
+                                        <div class="text-sm text-text-muted">Zatwierdź zmiany</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('operation', 'log', this)">
+                                        <div class="font-semibold">Log</div>
+                                        <div class="text-sm text-text-muted">Pokaż historię</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="addOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Co dodać:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('addTarget', '.', this)">
+                                        <div class="font-semibold">Wszystko</div>
+                                        <div class="text-sm text-text-muted">git add .</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('addTarget', 'file', this)">
+                                        <div class="font-semibold">Plik</div>
+                                        <div class="text-sm text-text-muted">Określony plik</div>
+                                    </div>
+                                </div>
+                                <input type="text" id="addFileInput" placeholder="nazwa-pliku.js" class="w-full mt-3 px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none hidden" onchange="updateCommand()">
+                            </div>
+                            
+                            <div id="commitOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Wiadomość commita:</label>
+                                <input type="text" id="commitMessage" placeholder="Opis zmian" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                
+                                <div class="mt-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="commitAll" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Dodaj wszystkie zmienione pliki (-a)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="logOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Opcje log:</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="logOneline" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Skrócone wiersze (--oneline)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="logGraph" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Graficzna reprezentacja (--graph)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="logAll" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Wszystkie gałęzie (--all)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wygenerowana komenda</h3>
+                            <div class="code-output neon-glow" id="basicOutput">
+                                Wybierz operację, aby wygenerować komendę
+                            </div>
+                            
+                            <div class="mt-4 flex gap-3">
+                                <button onclick="copyCommand('basic')" class="bg-neon-primary text-bg-dark px-4 py-2 rounded-lg font-semibold hover-lift flex-1">
+                                    Kopiuj
+                                </button>
+                                <button onclick="executeGeneratedCommand()" class="border-2 border-neon-primary text-neon-primary px-4 py-2 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all flex-1">
+                                    Wykonaj
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Historia komend</h3>
+                            <div class="space-y-2 max-h-48 overflow-y-auto" id="commandHistory">
+                                <div class="text-sm text-text-muted">Brak wygenerowanych komend</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Remote Commands Generator -->
+            <div class="generator-section" id="generator-remote">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="glass-effect rounded-lg p-6">
+                        <h2 class="text-2xl font-display font-bold mb-6 text-neon-primary">Komendy zdalne</h2>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Operacja:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('remoteOperation', 'clone', this)">
+                                        <div class="font-semibold">Clone</div>
+                                        <div class="text-sm text-text-muted">Sklonuj repozytorium</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('remoteOperation', 'push', this)">
+                                        <div class="font-semibold">Push</div>
+                                        <div class="text-sm text-text-muted">Wyślij zmiany</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('remoteOperation', 'pull', this)">
+                                        <div class="font-semibold">Pull</div>
+                                        <div class="text-sm text-text-muted">Pobierz zmiany</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('remoteOperation', 'fetch', this)">
+                                        <div class="font-semibold">Fetch</div>
+                                        <div class="text-sm text-text-muted">Pobierz bez scalania</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="cloneOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">URL repozytorium:</label>
+                                <input type="text" id="cloneUrl" placeholder="https://github.com/user/repo.git" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                            </div>
+                            
+                            <div id="pushPullOptions" class="hidden">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Remote:</label>
+                                        <select id="remoteName" onchange="updateCommand()" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none">
+                                            <option value="origin">origin</option>
+                                            <option value="upstream">upstream</option>
+                                            <option value="custom">custom</option>
+                                        </select>
+                                        <input type="text" id="customRemote" placeholder="nazwa-remote" class="w-full mt-2 px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none hidden" onchange="updateCommand()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Branch:</label>
+                                        <select id="branchName" onchange="updateCommand()" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none">
+                                            <option value="main">main</option>
+                                            <option value="master">master</option>
+                                            <option value="develop">develop</option>
+                                            <option value="custom">custom</option>
+                                        </select>
+                                        <input type="text" id="customBranch" placeholder="nazwa-branch" class="w-full mt-2 px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none hidden" onchange="updateCommand()">
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="forceFlag" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Wymuś operację (--force)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wygenerowana komenda</h3>
+                            <div class="code-output neon-glow" id="remoteOutput">
+                                Wybierz operację, aby wygenerować komendę
+                            </div>
+                            
+                            <div class="mt-4 flex gap-3">
+                                <button onclick="copyCommand('remote')" class="bg-neon-primary text-bg-dark px-4 py-2 rounded-lg font-semibold hover-lift flex-1">
+                                    Kopiuj
+                                </button>
+                                <button onclick="executeGeneratedCommand()" class="border-2 border-neon-primary text-neon-primary px-4 py-2 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all flex-1">
+                                    Wykonaj
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Najczęstsze błędy</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="p-3 bg-red-500/10 border border-red-500/30 rounded">
+                                    <div class="font-semibold text-red-400">git push main origin</div>
+                                    <div class="text-text-muted">Zła kolejność - poprawnie: git push origin main</div>
+                                </div>
+                                <div class="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded">
+                                    <div class="font-semibold text-yellow-400">Brakuje remote</div>
+                                    <div class="text-text-muted">Najpierw: git remote add origin [URL]</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Branch Commands Generator -->
+            <div class="generator-section" id="generator-branch">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="glass-effect rounded-lg p-6">
+                        <h2 class="text-2xl font-display font-bold mb-6 text-neon-primary">Generator gałęzi</h2>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Operacja:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('branchOperation', 'create', this)">
+                                        <div class="font-semibold">Utwórz</div>
+                                        <div class="text-sm text-text-muted">git branch / git switch -c</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('branchOperation', 'switch', this)">
+                                        <div class="font-semibold">Przełącz</div>
+                                        <div class="text-sm text-text-muted">git switch / git checkout</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('branchOperation', 'delete', this)">
+                                        <div class="font-semibold">Usuń</div>
+                                        <div class="text-sm text-text-muted">git branch -d/-D</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('branchOperation', 'merge', this)">
+                                        <div class="font-semibold">Scal</div>
+                                        <div class="text-sm text-text-muted">git merge</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="branchCreateOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Nazwa gałęzi:</label>
+                                <input type="text" id="branchName" placeholder="feature/login" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                <div class="mt-3">
+                                    <label class="block text-sm font-medium mb-2">Bazowa gałąź (opcjonalnie):</label>
+                                    <input type="text" id="baseBranch" placeholder="main" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                </div>
+                            </div>
+
+                            <div id="branchSwitchOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Docelowa gałąź:</label>
+                                <input type="text" id="switchBranch" placeholder="feature/login" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                            </div>
+
+                            <div id="branchDeleteOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Usuń gałąź:</label>
+                                <input type="text" id="deleteBranch" placeholder="feature/login" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                <div class="mt-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="deleteForce" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Wymuś usunięcie (-D)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="branchMergeOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Scal gałąź do bieżącej:</label>
+                                <input type="text" id="mergeBranch" placeholder="feature/login" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wygenerowana komenda</h3>
+                            <div class="code-output neon-glow" id="branchOutput">
+                                Wybierz operację, aby wygenerować komendę
+                            </div>
+                            
+                            <div class="mt-4 flex gap-3">
+                                <button onclick="copyCommand('branch')" class="bg-neon-primary text-bg-dark px-4 py-2 rounded-lg font-semibold hover-lift flex-1">
+                                    Kopiuj
+                                </button>
+                                <button onclick="executeGeneratedCommand()" class="border-2 border-neon-primary text-neon-primary px-4 py-2 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all flex-1">
+                                    Wykonaj
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wskazówki</h3>
+                            <div class="space-y-2 text-sm text-text-secondary">
+                                <div>• Używaj <span class="font-mono">git switch</span> zamiast <span class="font-mono">git checkout</span> do przełączania</div>
+                                <div>• Przed mergem zaktualizuj <span class="font-mono">main</span>: <span class="font-mono">git pull</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Commands Generator -->
+            <div class="generator-section" id="generator-advanced">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="glass-effect rounded-lg p-6">
+                        <h2 class="text-2xl font-display font-bold mb-6 text-neon-primary">Komendy zaawansowane</h2>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Operacja:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('advancedOperation', 'stash', this)">
+                                        <div class="font-semibold">Stash</div>
+                                        <div class="text-sm text-text-muted">Odkładanie zmian</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('advancedOperation', 'reset', this)">
+                                        <div class="font-semibold">Reset</div>
+                                        <div class="text-sm text-text-muted">soft/mixed/hard</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('advancedOperation', 'revert', this)">
+                                        <div class="font-semibold">Revert</div>
+                                        <div class="text-sm text-text-muted">Odwrócenie commita</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('advancedOperation', 'cherry-pick', this)">
+                                        <div class="font-semibold">Cherry-pick</div>
+                                        <div class="text-sm text-text-muted">Wybrany commit</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="stashOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Akcja stash:</label>
+                                <select id="stashAction" onchange="updateCommand()" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none">
+                                    <option value="save">stash</option>
+                                    <option value="pop">stash pop</option>
+                                    <option value="list">stash list</option>
+                                </select>
+                                <div class="mt-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="stashIncludeUntracked" onchange="updateCommand()" class="mr-2">
+                                        <span class="text-sm">Uwzględnij nieśledzone (--include-untracked)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="resetOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Rodzaj reset:</label>
+                                <select id="resetType" onchange="updateCommand()" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none">
+                                    <option value="soft">--soft</option>
+                                    <option value="mixed">--mixed</option>
+                                    <option value="hard">--hard</option>
+                                </select>
+                                <div class="mt-3">
+                                    <label class="block text-sm font-medium mb-2">Cel (np. HEAD~1, HASH):</label>
+                                    <input type="text" id="resetTarget" placeholder="HEAD~1" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                </div>
+                            </div>
+
+                            <div id="revertOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Commit/zakres do odwrócenia:</label>
+                                <input type="text" id="revertTarget" placeholder="HEAD lub abc123..def456" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                            </div>
+
+                            <div id="cherryPickOptions" class="hidden">
+                                <label class="block text-sm font-medium mb-2">Hash commita/y:</label>
+                                <input type="text" id="cherryPickTarget" placeholder="abc123 lub abc123..def456" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wygenerowana komenda</h3>
+                            <div class="code-output neon-glow" id="advancedOutput">
+                                Wybierz operację, aby wygenerować komendę
+                            </div>
+                            
+                            <div class="mt-4 flex gap-3">
+                                <button onclick="copyCommand('advanced')" class="bg-neon-primary text-bg-dark px-4 py-2 rounded-lg font-semibold hover-lift flex-1">
+                                    Kopiuj
+                                </button>
+                                <button onclick="executeGeneratedCommand()" class="border-2 border-neon-primary text-neon-primary px-4 py-2 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all flex-1">
+                                    Wykonaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alias Generator -->
+            <div class="generator-section" id="generator-alias">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="glass-effect rounded-lg p-6">
+                        <h2 class="text-2xl font-display font-bold mb-6 text-neon-primary">Generator aliasów</h2>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Zakres aliasu:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('aliasScope', 'global', this)">
+                                        <div class="font-semibold">Global</div>
+                                        <div class="text-sm text-text-muted">Dla wszystkich repo</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="selectOption('aliasScope', 'local', this)">
+                                        <div class="font-semibold">Lokalny</div>
+                                        <div class="text-sm text-text-muted">Tylko w tym repo</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="aliasOptions">
+                                <label class="block text-sm font-medium mb-2">Nazwa aliasu:</label>
+                                <input type="text" id="aliasName" placeholder="co, st, lg" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                <div class="mt-3">
+                                    <label class="block text-sm font-medium mb-2">Polecenie:</label>
+                                    <input type="text" id="aliasValue" placeholder="checkout, status, log --oneline" class="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:border-neon-primary outline-none" onchange="updateCommand()">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Szybkie preset-y:</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="applyAliasPreset('co','checkout')">
+                                        <div class="font-semibold">co → checkout</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="applyAliasPreset('st','status')">
+                                        <div class="font-semibold">st → status</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="applyAliasPreset('ci','commit')">
+                                        <div class="font-semibold">ci → commit</div>
+                                    </div>
+                                    <div class="option-card p-3 border border-border rounded-lg" onclick="applyAliasPreset('lg','log --oneline --graph --all')">
+                                        <div class="font-semibold">lg → log --oneline --graph --all</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-effect rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Wygenerowana komenda</h3>
+                            <div class="code-output neon-glow" id="aliasOutput">
+                                Wybierz operację, aby wygenerować komendę
+                            </div>
+                            
+                            <div class="mt-4 flex gap-3">
+                                <button onclick="copyCommand('alias')" class="bg-neon-primary text-bg-dark px-4 py-2 rounded-lg font-semibold hover-lift flex-1">
+                                    Kopiuj
+                                </button>
+                                <button onclick="executeGeneratedCommand()" class="border-2 border-neon-primary text-neon-primary px-4 py-2 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all flex-1">
+                                    Wykonaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-border">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="text-2xl font-display font-bold neon-text mb-4">GitMaster</div>
+            <p class="text-text-secondary mb-6">
+                Interaktywny poradnik Git stworzony z myślą o developerach
+            </p>
+            <div class="text-sm text-text-muted">
+                © 2024 GitMaster. Wszystkie prawa zastrzeżone.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        let currentGenerator = 'basic';
+        let selectedOptions = {
+            operation: null,
+            addTarget: null,
+            remoteOperation: null,
+            branchOperation: null,
+            advancedOperation: null,
+            aliasScope: null
+        };
+        
+        let commandHistory = [];
+        
+        function showGenerator(generatorType) {
+            // Hide all generators
+            document.querySelectorAll('.generator-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected generator
+            document.getElementById(`generator-${generatorType}`).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.generator-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-generator="${generatorType}"]`).classList.add('active');
+            
+            currentGenerator = generatorType;
+            resetOptions();
+        }
+        
+        function selectOption(type, value, element) {
+            // Remove selection from siblings
+            element.parentElement.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select current element
+            element.classList.add('selected');
+            selectedOptions[type] = value;
+            
+            // Show/hide relevant options
+            showRelevantOptions();
+            updateCommand();
+        }
+        
+        function showRelevantOptions() {
+            // Hide all option sections
+            document.querySelectorAll('[id$="Options"]').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show relevant options based on selected operation
+            if (selectedOptions.operation === 'add') {
+                document.getElementById('addOptions').classList.remove('hidden');
+            } else if (selectedOptions.operation === 'commit') {
+                document.getElementById('commitOptions').classList.remove('hidden');
+            } else if (selectedOptions.operation === 'log') {
+                document.getElementById('logOptions').classList.remove('hidden');
+            } else if (selectedOptions.remoteOperation === 'clone') {
+                document.getElementById('cloneOptions').classList.remove('hidden');
+            } else if (['push', 'pull', 'fetch'].includes(selectedOptions.remoteOperation)) {
+                document.getElementById('pushPullOptions').classList.remove('hidden');
+            } else if (selectedOptions.branchOperation === 'create') {
+                document.getElementById('branchCreateOptions').classList.remove('hidden');
+            } else if (selectedOptions.branchOperation === 'switch') {
+                document.getElementById('branchSwitchOptions').classList.remove('hidden');
+            } else if (selectedOptions.branchOperation === 'delete') {
+                document.getElementById('branchDeleteOptions').classList.remove('hidden');
+            } else if (selectedOptions.branchOperation === 'merge') {
+                document.getElementById('branchMergeOptions').classList.remove('hidden');
+            } else if (selectedOptions.advancedOperation === 'stash') {
+                document.getElementById('stashOptions').classList.remove('hidden');
+            } else if (selectedOptions.advancedOperation === 'reset') {
+                document.getElementById('resetOptions').classList.remove('hidden');
+            } else if (selectedOptions.advancedOperation === 'revert') {
+                document.getElementById('revertOptions').classList.remove('hidden');
+            } else if (selectedOptions.advancedOperation === 'cherry-pick') {
+                document.getElementById('cherryPickOptions').classList.remove('hidden');
+            }
+        }
+        
+        function updateCommand() {
+            let command = '';
+            
+            if (currentGenerator === 'basic') {
+                command = generateBasicCommand();
+            } else if (currentGenerator === 'remote') {
+                command = generateRemoteCommand();
+            } else if (currentGenerator === 'branch') {
+                command = generateBranchCommand();
+            } else if (currentGenerator === 'advanced') {
+                command = generateAdvancedCommand();
+            } else if (currentGenerator === 'alias') {
+                command = generateAliasCommand();
+            }
+            
+            // Update output
+            const outputElement = document.getElementById(`${currentGenerator}Output`);
+            if (outputElement) {
+                outputElement.textContent = command || 'Wybierz operację, aby wygenerować komendę';
+            }
+        }
+        
+        function generateBasicCommand() {
+            if (!selectedOptions.operation) return '';
+            
+            let command = `git ${selectedOptions.operation}`;
+            
+            switch (selectedOptions.operation) {
+                case 'add':
+                    if (selectedOptions.addTarget === '.') {
+                        command += ' .';
+                    } else if (selectedOptions.addTarget === 'file') {
+                        const fileInput = document.getElementById('addFileInput');
+                        if (fileInput && fileInput.value) {
+                            command += ` ${fileInput.value}`;
+                        } else {
+                            command += ' [plik]';
+                        }
+                    }
+                    break;
+                    
+                case 'commit': {
+                    const message = document.getElementById('commitMessage')?.value;
+                    const commitAll = document.getElementById('commitAll')?.checked;
+                    if (commitAll) {
+                        command += ' -a';
+                    }
+                    if (message) {
+                        command += ` -m "${message}"`;
+                    } else {
+                        command += ' -m "[wiadomość]"';
+                    }
+                    break;
+                }
+                    
+                case 'log': {
+                    const oneline = document.getElementById('logOneline')?.checked;
+                    const graph = document.getElementById('logGraph')?.checked;
+                    const all = document.getElementById('logAll')?.checked;
+                    if (oneline) command += ' --oneline';
+                    if (graph) command += ' --graph';
+                    if (all) command += ' --all';
+                    break;
+                }
+            }
+            
+            return command;
+        }
+        
+        function generateRemoteCommand() {
+            if (!selectedOptions.remoteOperation) return '';
+            
+            let command = `git ${selectedOptions.remoteOperation}`;
+            
+            switch (selectedOptions.remoteOperation) {
+                case 'clone': {
+                    const url = document.getElementById('cloneUrl')?.value;
+                    if (url) {
+                        command += ` ${url}`;
+                    } else {
+                        command += ' [URL-repozytorium]';
+                    }
+                    break;
+                }
+                case 'push':
+                case 'pull':
+                case 'fetch': {
+                    let remote = document.getElementById('remoteName')?.value;
+                    let branch = document.getElementById('branchName')?.value;
+                    if (remote === 'custom') {
+                        remote = document.getElementById('customRemote')?.value || '[remote]';
+                    }
+                    if (branch === 'custom') {
+                        branch = document.getElementById('customBranch')?.value || '[branch]';
+                    }
+                    if (remote && branch) {
+                        command += ` ${remote} ${branch}`;
+                    }
+                    const forceFlag = document.getElementById('forceFlag')?.checked;
+                    if (forceFlag) {
+                        command += ' --force';
+                    }
+                    break;
+                }
+            }
+            
+            return command;
+        }
+        
+        function copyCommand(generatorType) {
+            const outputElement = document.getElementById(`${generatorType}Output`);
+            const command = outputElement?.textContent;
+            
+            if (command && command !== 'Wybierz operację, aby wygenerować komendę') {
+                navigator.clipboard.writeText(command).then(() => {
+                    // Visual feedback
+                    outputElement.classList.add('copy-success');
+                    setTimeout(() => {
+                        outputElement.classList.remove('copy-success');
+                    }, 300);
+                    
+                    // Add to history
+                    addToHistory(command);
+                    
+                    // Show success message
+                    showNotification('Skopiowano do schowka!', 'success');
+                }).catch(() => {
+                    showNotification('Nie udało się skopiować', 'error');
+                });
+            }
+        }
+        
+        function executeGeneratedCommand() {
+            const outputElement = document.getElementById(`${currentGenerator}Output`);
+            const command = outputElement?.textContent;
+            
+            if (command && command !== 'Wybierz operację, aby wygenerować komendę') {
+                // In a real application, this would execute the command
+                showNotification('Komenda gotowa do wykonania w terminalu!', 'info');
+            }
+        }
+        
+        function addToHistory(command) {
+            commandHistory.unshift({
+                command: command,
+                timestamp: new Date(),
+                generator: currentGenerator
+            });
+            
+            // Keep only last 10 commands
+            if (commandHistory.length > 10) {
+                commandHistory = commandHistory.slice(0, 10);
+            }
+            
+            updateHistoryDisplay();
+        }
+        
+        function updateHistoryDisplay() {
+            const historyElement = document.getElementById('commandHistory');
+            if (!historyElement) return;
+            
+            if (commandHistory.length === 0) {
+                historyElement.innerHTML = '<div class="text-sm text-text-muted">Brak wygenerowanych komend</div>';
+                return;
+            }
+            
+            historyElement.innerHTML = commandHistory.map((item, index) => `
+                <div class="p-2 bg-surface rounded text-xs cursor-pointer hover:bg-neon-primary/10" onclick="useFromHistory(${index})">
+                    <div class="font-mono text-neon-primary">${item.command}</div>
+                    <div class="text-text-muted">${item.generator} • ${item.timestamp.toLocaleTimeString()}</div>
+                </div>
+            `).join('');
+        }
+        
+        function useFromHistory(index) {
+            const item = commandHistory[index];
+            if (item) {
+                // Find and activate the right generator
+                showGenerator(item.generator);
+                
+                // Update the output
+                setTimeout(() => {
+                    const outputElement = document.getElementById(`${item.generator}Output`);
+                    if (outputElement) {
+                        outputElement.textContent = item.command;
+                    }
+                }, 100);
+            }
+        }
+        
+        function resetOptions() {
+            selectedOptions = {
+                operation: null,
+                addTarget: null,
+                remoteOperation: null,
+                branchOperation: null,
+                advancedOperation: null,
+                aliasScope: null
+            };
+            
+            // Clear all selections
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Clear all inputs
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.value = '';
+            });
+            
+            // Clear all checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Hide all option sections
+            document.querySelectorAll('[id$="Options"]').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            updateCommand();
+        }
+
+        function generateBranchCommand() {
+            if (!selectedOptions.branchOperation) return '';
+            let cmd = '';
+            switch (selectedOptions.branchOperation) {
+                case 'create': {
+                    const name = document.getElementById('branchName')?.value || '[nazwa-gałęzi]';
+                    const base = document.getElementById('baseBranch')?.value;
+                    if (base) {
+                        cmd = `git branch ${name} ${base}\n` + `git switch ${name}`;
+                    } else {
+                        cmd = `git switch -c ${name}`;
+                    }
+                    break;
+                }
+                case 'switch': {
+                    const to = document.getElementById('switchBranch')?.value || '[gałąź]';
+                    cmd = `git switch ${to}`;
+                    break;
+                }
+                case 'delete': {
+                    const del = document.getElementById('deleteBranch')?.value || '[gałąź]';
+                    const force = document.getElementById('deleteForce')?.checked;
+                    cmd = `git branch ${force ? '-D' : '-d'} ${del}`;
+                    break;
+                }
+                case 'merge': {
+                    const src = document.getElementById('mergeBranch')?.value || '[gałąź]';
+                    cmd = `git merge ${src}`;
+                    break;
+                }
+            }
+            return cmd;
+        }
+
+        function generateAdvancedCommand() {
+            if (!selectedOptions.advancedOperation) return '';
+            let cmd = '';
+            switch (selectedOptions.advancedOperation) {
+                case 'stash': {
+                    const action = document.getElementById('stashAction')?.value || 'save';
+                    const includeUntracked = document.getElementById('stashIncludeUntracked')?.checked;
+                    if (action === 'save') {
+                        cmd = `git stash${includeUntracked ? ' --include-untracked' : ''}`;
+                    } else if (action === 'pop') {
+                        cmd = `git stash pop`;
+                    } else if (action === 'list') {
+                        cmd = `git stash list`;
+                    }
+                    break;
+                }
+                case 'reset': {
+                    const type = document.getElementById('resetType')?.value || '--mixed';
+                    const target = document.getElementById('resetTarget')?.value || 'HEAD~1';
+                    cmd = `git reset ${type} ${target}`;
+                    break;
+                }
+                case 'revert': {
+                    const target = document.getElementById('revertTarget')?.value || 'HEAD';
+                    cmd = `git revert ${target}`;
+                    break;
+                }
+                case 'cherry-pick': {
+                    const range = document.getElementById('cherryPickTarget')?.value || '[hash|zakres]';
+                    cmd = `git cherry-pick ${range}`;
+                    break;
+                }
+            }
+            return cmd;
+        }
+
+        function generateAliasCommand() {
+            const scope = selectedOptions.aliasScope || 'global';
+            const name = document.getElementById('aliasName')?.value || '[skrót]';
+            const value = document.getElementById('aliasValue')?.value || '[polecenie]';
+            return `git config --${scope} alias.${name} "${value}"`;
+        }
+
+        function applyAliasPreset(name, value) {
+            const nameEl = document.getElementById('aliasName');
+            const valueEl = document.getElementById('aliasValue');
+            if (nameEl) nameEl.value = name;
+            if (valueEl) valueEl.value = value;
+            updateCommand();
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-24 right-4 z-50 px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform translate-x-full`;
+            
+            switch (type) {
+                case 'success':
+                    notification.classList.add('bg-green-500', 'text-white');
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500', 'text-white');
+                    break;
+                case 'info':
+                default:
+                    notification.classList.add('bg-neon-primary', 'text-bg-dark');
+                    break;
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Event listeners for custom inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Custom remote input
+            document.getElementById('remoteName')?.addEventListener('change', function() {
+                const customInput = document.getElementById('customRemote');
+                if (this.value === 'custom') {
+                    customInput.classList.remove('hidden');
+                } else {
+                    customInput.classList.add('hidden');
+                }
+                updateCommand();
+            });
+            
+            // Custom branch input
+            document.getElementById('branchName')?.addEventListener('change', function() {
+                const customInput = document.getElementById('customBranch');
+                if (this.value === 'custom') {
+                    customInput.classList.remove('hidden');
+                } else {
+                    customInput.classList.add('hidden');
+                }
+                updateCommand();
+            });
+            
+            // Initialize
+            showGenerator('basic');
+        });
+        
+        // Make functions global
+        window.showGenerator = showGenerator;
+        window.selectOption = selectOption;
+        window.copyCommand = copyCommand;
+        window.executeGeneratedCommand = executeGeneratedCommand;
+        window.useFromHistory = useFromHistory;
+        window.applyAliasPreset = applyAliasPreset;
+    </script>
+</body>
+</html>

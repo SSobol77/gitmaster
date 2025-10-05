@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktywny Poradnik Git - Naucz się efektywnie korzystać z Git</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-dark': '#0a0e1a',
+                        'bg-light': '#1a1f2e',
+                        'surface': '#252a3a',
+                        'border': '#3a3f4f',
+                        'neon-primary': '#00ff88',
+                        'neon-secondary': '#ff6b6b',
+                        'neon-warning': '#ffd93d',
+                        'neon-info': '#4ecdc4',
+                        'neon-purple': '#a78bfa',
+                        'text-primary': '#ffffff',
+                        'text-secondary': '#b8c5d1',
+                        'text-muted': '#6b7280'
+                    },
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                        'sans': ['Inter', 'sans-serif'],
+                        'display': ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom styles for effects */
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .error-glow {
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        .terminal-cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(37, 42, 58, 0.8);
+        }
+        
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        /* Animated background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        /* Quiz styles */
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        /* Terminal styles */
+        .terminal-output {
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        /* Keep hero terminal demo size constant during typing animation */
+        #terminalDemo {
+            min-height: 160px;
+        }
+    </style>
+</head>
+<body class="gradient-bg text-text-primary font-sans overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="animated-bg" id="animatedBackground"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-display font-bold neon-text">
+                        GitMaster
+                    </div>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="#home" class="text-text-secondary hover:text-neon-primary transition-colors">Strona Główna</a>
+                        <a href="tutorial.html" class="text-text-secondary hover:text-neon-primary transition-colors">Tutorial</a>
+                        <a href="generator.html" class="text-text-secondary hover:text-neon-primary transition-colors">Generator</a>
+                        <a href="quiz.html" class="text-text-secondary hover:text-neon-primary transition-colors">Quiz</a>
+                        <a href="errors.html" class="text-text-secondary hover:text-neon-primary transition-colors">Błędy</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2 text-sm text-text-muted">
+                        <span>Twój postęp:</span>
+                        <div class="w-24 h-2 bg-surface rounded-full">
+                            <div class="h-full bg-neon-primary rounded-full progress-bar" style="width: 0%" id="overallProgress"></div>
+                        </div>
+                    </div>
+                    <button class="md:hidden text-text-primary" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-20 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="mb-8">
+                <h1 class="text-5xl md:text-7xl font-display font-bold mb-6">
+                    <span class="neon-text">Git</span> nie musi być trudny
+                </h1>
+                <p class="text-xl md:text-2xl text-text-secondary mb-8 max-w-3xl mx-auto">
+                    Naucz się efektywnie korzystać z Git przez interaktywne tutoriale, 
+                    symulacje terminala i praktyczne ćwiczenia. Od podstaw po zaawansowane techniki.
+                </p>
+            </div>
+            
+            <!-- Interactive Terminal Demo -->
+            <div class="max-w-4xl mx-auto mb-12">
+                <div class="glass-effect rounded-lg p-6 neon-glow">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                        <span class="text-sm text-text-muted">Terminal</span>
+                    </div>
+                    <div class="terminal-output text-left text-neon-primary" id="terminalDemo">
+                        <div class="mb-2">$ git push main origin</div>
+                        <div class="text-red-400 mb-2">error: src refspec main does not match any</div>
+                        <div class="text-red-400 mb-4">error: failed to push some refs to 'origin'</div>
+                        <div class="text-yellow-400 mb-2"># Poprawna składnia:</div>
+                        <div class="text-green-400">$ git push origin main</div>
+                        <div class="text-green-400 mb-2">✓ Successfully pushed to origin/main</div>
+                        <div class="terminal-cursor">█</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button onclick="scrollToSection('terminal')" class="bg-neon-primary text-bg-dark px-8 py-4 rounded-lg font-semibold hover-lift">
+                    Wypróbuj Terminal
+                </button>
+                <a href="tutorial.html" class="border-2 border-neon-primary text-neon-primary px-8 py-4 rounded-lg font-semibold hover:bg-neon-primary hover:text-bg-dark transition-all">
+                    Rozpocznij Tutorial
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Interactive Terminal Section -->
+    <section id="terminal" class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-display font-bold mb-4">
+                    Interaktywny <span class="neon-text">Terminal Git</span>
+                </h2>
+                <p class="text-xl text-text-secondary max-w-3xl mx-auto">
+                    Praktykuj komendy Git w bezpiecznym środowisku. Wpisz komendy, zobacz wyniki i ucz się przez doświadczenie.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Terminal -->
+                <div class="lg:col-span-2">
+                    <div class="glass-effect rounded-lg p-6 neon-glow">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
+                            <span class="text-sm text-text-muted">Git Terminal</span>
+                        </div>
+                        
+                        <div class="bg-bg-dark rounded p-4 h-96 overflow-y-auto" id="terminalOutput">
+                            <div class="terminal-output text-neon-primary">
+                                <div>✓ Terminal Git gotowy do użycia</div>
+                                <div class="text-text-muted">Wpisz komendę lub wybierz z poniższych:</div>
+                                <div class="mt-2">$ <span id="terminalInput" contenteditable="true" class="outline-none"></span><span class="terminal-cursor">█</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button onclick="executeCommand('git status')" class="px-3 py-1 bg-surface rounded text-sm hover:bg-neon-primary hover:text-bg-dark transition-colors">
+                                git status
+                            </button>
+                            <button onclick="executeCommand('git add .')" class="px-3 py-1 bg-surface rounded text-sm hover:bg-neon-primary hover:text-bg-dark transition-colors">
+                                git add .
+                            </button>
+                            <button onclick="executeCommand('git commit -m &quot;test commit&quot;')" class="px-3 py-1 bg-surface rounded text-sm hover:bg-neon-primary hover:text-bg-dark transition-colors">
+                                git commit
+                            </button>
+                            <button onclick="executeCommand('git log --oneline')" class="px-3 py-1 bg-surface rounded text-sm hover:bg-neon-primary hover:text-bg-dark transition-colors">
+                                git log
+                            </button>
+                            <button onclick="executeCommand('git push origin main')" class="px-3 py-1 bg-surface rounded text-sm hover:bg-neon-primary hover:text-bg-dark transition-colors">
+                                git push
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Command Help -->
+                <div class="space-y-6">
+                    <div class="glass-effect rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-neon-info">Podpowiedzi</h3>
+                        <div class="space-y-3 text-sm" id="commandHelp">
+                            <div class="p-3 bg-surface rounded">
+                                <div class="font-mono text-neon-primary">git status</div>
+                                <div class="text-text-muted mt-1">Sprawdź status repozytorium</div>
+                            </div>
+                            <div class="p-3 bg-surface rounded">
+                                <div class="font-mono text-neon-primary">git add .</div>
+                                <div class="text-text-muted mt-1">Dodaj wszystkie zmiany do stage</div>
+                            </div>
+                            <div class="p-3 bg-surface rounded">
+                                <div class="font-mono text-neon-primary">git commit -m "message"</div>
+                                <div class="text-text-muted mt-1">Zatwierdź zmiany z komentarzem</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-neon-warning">Statystyki</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-text-secondary">Wykonane komendy:</span>
+                                <span class="text-neon-primary" id="commandsCount">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-text-secondary">Poprawne komendy:</span>
+                                <span class="text-green-400" id="correctCommands">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-text-secondary">Błędy:</span>
+                                <span class="text-red-400" id="errorCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Quick Quiz Section -->
+    <section id="quiz" class="py-20 px-4 bg-bg-light/50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-display font-bold mb-4">
+                    Szybki <span class="neon-text">Quiz</span>
+                </h2>
+                <p class="text-xl text-text-secondary">
+                    Sprawdź swoją wiedzę o podstawowych komendach Git
+                </p>
+            </div>
+            
+            <div class="glass-effect rounded-lg p-8">
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-text-secondary">Pytanie <span id="currentQuestion">1</span> z <span id="totalQuestions">5</span></span>
+                        <span class="text-sm text-neon-primary">Punkty: <span id="quizScore">0</span></span>
+                    </div>
+                    <div class="w-full bg-surface rounded-full h-2">
+                        <div class="bg-neon-primary h-2 rounded-full progress-bar" style="width: 20%" id="quizProgress"></div>
+                    </div>
+                </div>
+                
+                <div id="quizContent">
+                    <h3 class="text-2xl font-semibold mb-6" id="questionText">
+                        Jaką komendę używasz do sprawdzenia statusu repozytorium Git?
+                    </h3>
+                    
+                    <div class="space-y-4" id="quizOptions">
+                        <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectAnswer(0)">
+                            <span class="font-mono">git status</span>
+                        </div>
+                        <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectAnswer(1)">
+                            <span class="font-mono">git check</span>
+                        </div>
+                        <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectAnswer(2)">
+                            <span class="font-mono">git state</span>
+                        </div>
+                        <div class="quiz-option p-4 border border-border rounded-lg" onclick="selectAnswer(3)">
+                            <span class="font-mono">git info</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button id="nextQuestionBtn" onclick="nextQuestion()" class="bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold opacity-50 cursor-not-allowed" disabled>
+                            Następne pytanie
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="quizResults" class="hidden text-center">
+                    <h3 class="text-3xl font-bold mb-4 text-neon-primary">Quiz ukończony!</h3>
+                    <p class="text-xl mb-6">Twój wynik: <span id="finalScore" class="font-bold">0</span>/5</p>
+                    <button onclick="restartQuiz()" class="bg-neon-primary text-bg-dark px-6 py-3 rounded-lg font-semibold hover-lift">
+                        Spróbuj ponownie
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-display font-bold mb-4">
+                    Co znajdziesz w <span class="neon-text">poradniku</span>?
+                </h2>
+                <p class="text-xl text-text-secondary">
+                    Kompletne narzędzie do nauki Git - od podstaw po eksperta
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <div class="w-12 h-12 bg-neon-primary rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bg-dark" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm3 6a1 1 0 011-1h6a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H6z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Interaktywny Terminal</h3>
+                    <p class="text-text-secondary">Ćwicz komendy Git w bezpiecznym środowisku z symulacją prawdziwych wyników.</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <div class="w-12 h-12 bg-neon-info rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bg-dark" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Quizy i Testy</h3>
+                    <p class="text-text-secondary">Sprawdzaj swoją wiedzę przez interaktywne quizy i praktyczne wyzwania.</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <div class="w-12 h-12 bg-neon-purple rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bg-dark" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Generator Komend</h3>
+                    <p class="text-text-secondary">Twórz skomplikowane komendy Git przez intuicyjny interfejs wizualny.</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <div class="w-12 h-12 bg-neon-warning rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bg-dark" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Rozwiązywanie Problemów</h3>
+                    <p class="text-text-secondary">Znajdź rozwiązania najczęstszych błędów Git i problemów z konfiguracją.</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <div class="w-12 h-12 bg-neon-secondary rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bg-dark" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Praktyczne Przykłady</h3>
+                    <p class="text-text-secondary">Naucz się przez realne scenariusze i praktyczne zastosowania w projektach.</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 hover-lift">
+                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bg-dark" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Postęp i Osiągnięcia</h3>
+                    <p class="text-text-secondary">Śledź swoje postępy, zdobywaj odznaki i rywalizuj z innymi użytkownikami.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-border">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="text-2xl font-display font-bold neon-text mb-4">GitMaster</div>
+            <p class="text-text-secondary mb-6">
+                Interaktywny poradnik Git stworzony z myślą o developerach
+            </p>
+            <div class="text-sm text-text-muted">
+                © 2024 GitMaster. Wszystkie prawa zastrzeżone.
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="main.js"></script>
+</body>
+</html>
